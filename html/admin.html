@@ -1,0 +1,1243 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>پنل مدیریت حرفه‌ای | Dashboard</title>
+    <link rel="stylesheet" href="../styles/pages/admin.css" />
+    <link rel="stylesheet" href="../styles/main/up-btn.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <i class="fas fa-crown"></i>
+          <span>مدیریت پیشرفته</span>
+        </div>
+        <button class="close-btn" id="closeSidebar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul>
+          <li class="active" data-view="dashboard">
+            <a href="#dashboard">
+              <i class="fas fa-home"></i>
+              <span>داشبورد</span>
+            </a>
+          </li>
+
+          <!-- Users Dropdown -->
+          <li class="dropdown" data-view="users">
+            <a href="#" class="dropdown-toggle">
+              <i class="fas fa-users"></i>
+              <span>کاربران</span>
+              <i class="fas fa-chevron-down arrow"></i>
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="#users-list" data-action="users-list"
+                  ><i class="fas fa-list"></i> لیست کاربران</a
+                >
+              </li>
+              <li>
+                <a href="#add-user" data-action="add-user"
+                  ><i class="fas fa-user-plus"></i> افزودن کاربر</a
+                >
+              </li>
+              <li>
+                <a href="#user-roles" data-action="user-roles"
+                  ><i class="fas fa-user-tag"></i> نقش‌ها و دسترسی‌ها</a
+                >
+              </li>
+            </ul>
+          </li>
+
+          <!-- Products Dropdown -->
+          <li class="dropdown" data-view="products">
+            <a href="#" class="dropdown-toggle">
+              <i class="fas fa-box"></i>
+              <span>محصولات</span>
+              <i class="fas fa-chevron-down arrow"></i>
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="#products-list" data-action="products-list"
+                  ><i class="fas fa-list"></i> لیست محصولات</a
+                >
+              </li>
+              <li>
+                <a href="#add-product" data-action="add-product"
+                  ><i class="fas fa-plus"></i> افزودن محصول</a
+                >
+              </li>
+              <li>
+                <a href="#categories" data-action="categories"
+                  ><i class="fas fa-tags"></i> دسته‌بندی‌ها</a
+                >
+              </li>
+              <li>
+                <a href="#inventory" data-action="inventory"
+                  ><i class="fas fa-warehouse"></i> موجودی انبار</a
+                >
+              </li>
+            </ul>
+          </li>
+
+          <li data-view="orders">
+            <a href="#orders">
+              <i class="fas fa-shopping-cart"></i>
+              <span>سفارشات</span>
+              <span class="badge" id="orders-badge">12</span>
+            </a>
+          </li>
+
+          <!-- Settings Dropdown -->
+          <li class="dropdown" data-view="settings">
+            <a href="#" class="dropdown-toggle">
+              <i class="fas fa-cog"></i>
+              <span>تنظیمات</span>
+              <i class="fas fa-chevron-down arrow"></i>
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="#general" data-action="general"
+                  ><i class="fas fa-sliders-h"></i> تنظیمات عمومی</a
+                >
+              </li>
+              <li>
+                <a href="#security" data-action="security"
+                  ><i class="fas fa-shield-alt"></i> امنیت و رمز عبور</a
+                >
+              </li>
+              <li>
+                <a href="#notifications" data-action="notifications"
+                  ><i class="fas fa-bell"></i> تنظیمات اعلان‌ها</a
+                >
+              </li>
+            </ul>
+          </li>
+
+          <li data-view="site-content">
+            <a href="#site-content">
+              <i class="fas fa-file-alt"></i>
+              <span>محتوای سایت</span>
+            </a>
+          </li>
+
+          <li data-view="analytics">
+            <a href="#analytics">
+              <i class="fas fa-chart-line"></i>
+              <span>تحلیل و گزارش</span>
+            </a>
+          </li>
+
+          <li data-view="messages">
+            <a href="#messages">
+              <i class="fas fa-envelope"></i>
+              <span>پیام‌ها</span>
+              <span class="badge" id="messages-badge">5</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div
+          class="user-profile"
+          id="userProfileTrigger"
+          onclick="openModal('editProfileModal')"
+          style="cursor: pointer"
+          title="ویرایش پروفایل مدیر کل"
+        >
+          <img
+            src="https://i.pravatar.cc/150?img=33"
+            alt="پروفایل مدیر کل"
+            id="sidebarAvatar"
+          />
+          <div class="user-info">
+            <h4 id="sidebarUserName">مدیر کل سایت</h4>
+            <p id="sidebarUserRole">مدیر ارشد و مالک سیستم</p>
+          </div>
+        </div>
+        <button class="logout-btn" id="logoutBtn" title="خروج از سیستم">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <button class="menu-toggle" id="menuToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            id="globalSearch"
+            placeholder="جستجوی سریع در سیستم..."
+          />
+        </div>
+
+        <div class="header-actions">
+          <div style="position: relative">
+            <button class="header-btn" id="notificationBtn" title="اعلان‌ها">
+              <i class="fas fa-bell"></i>
+              <span class="notification-dot"></span>
+            </button>
+            <!-- Notification Dropdown Panel -->
+            <div class="notification-dropdown" id="notificationDropdown">
+              <div class="notif-header">
+                <h4>اعلان‌های سیستم</h4>
+                <button
+                  class="btn-secondary"
+                  id="markAllRead"
+                  style="font-size: 11px; padding: 4px 8px"
+                >
+                  خواندن همه
+                </button>
+              </div>
+              <div class="notif-body" id="notifListContainer"></div>
+            </div>
+          </div>
+
+          <button
+            class="header-btn"
+            id="messagesHeaderBtn"
+            title="پیام‌ها"
+            onclick="switchView('messages')"
+          >
+            <i class="fas fa-envelope"></i>
+          </button>
+          <button
+            class="header-btn"
+            id="profileHeaderBtn"
+            title="پروفایل کاربری"
+            onclick="switchView('settings')"
+          >
+            <i class="fas fa-user-circle"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- VIEW 1: DASHBOARD -->
+      <div id="view-dashboard" class="admin-view active">
+        <div class="dashboard-content">
+          <div class="page-title">
+            <h1>داشبورد مدیریت</h1>
+            <p>خوش آمدید؛ وضعیت کلی فروش و فعالیت‌های سیستم امروز</p>
+          </div>
+
+          <!-- Stats Cards -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+              <div class="stat-info">
+                <h3 id="stat-users">۱,۲۳۴</h3>
+                <p>کاربران فعال</p>
+                <span class="stat-change positive"
+                  ><i class="fas fa-arrow-up"></i> ۱۲٪</span
+                >
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon green">
+                <i class="fas fa-dollar-sign"></i>
+              </div>
+              <div class="stat-info">
+                <h3 id="stat-revenue">۳۲۰,۱۵۰,۰۰۰</h3>
+                <p>درآمد کل (تومان)</p>
+                <span class="stat-change positive"
+                  ><i class="fas fa-arrow-up"></i> ۱۸٪</span
+                >
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon orange">
+                <i class="fas fa-shopping-bag"></i>
+              </div>
+              <div class="stat-info">
+                <h3 id="stat-orders">۸۹۲</h3>
+                <p>سفارشات جدید</p>
+                <span class="stat-change negative"
+                  ><i class="fas fa-arrow-down"></i> ۳٪</span
+                >
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon purple">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <div class="stat-info">
+                <h3>۹۵٪</h3>
+                <p>رضایت مشتریان</p>
+                <span class="stat-change positive"
+                  ><i class="fas fa-arrow-up"></i> ۵٪</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts and Tables Section -->
+          <div class="content-grid">
+            <div class="glass-card">
+              <div class="card-header">
+                <h2>سفارشات اخیر</h2>
+                <button class="btn-secondary" onclick="switchView('orders')">
+                  مشاهده همه
+                </button>
+              </div>
+              <div class="table-container">
+                <table class="data-table" id="dashboardOrdersTable">
+                  <thead>
+                    <tr>
+                      <th>شماره سفارش</th>
+                      <th>مشتری</th>
+                      <th>محصول</th>
+                      <th>مبلغ</th>
+                      <th>وضعیت</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="glass-card">
+              <div class="card-header">
+                <h2>محصولات پرفروش</h2>
+                <button class="btn-secondary" onclick="switchView('products')">
+                  مشاهده همه
+                </button>
+              </div>
+              <div class="products-list" id="dashboardTopProducts"></div>
+            </div>
+
+            <div class="glass-card">
+              <div class="card-header">
+                <h2>عملیات سریع</h2>
+              </div>
+              <div class="quick-actions">
+                <button
+                  class="action-btn"
+                  onclick="openModal('addProductModal')"
+                >
+                  <i class="fas fa-plus"></i><span>افزودن محصول</span>
+                </button>
+                <button class="action-btn" onclick="openModal('addUserModal')">
+                  <i class="fas fa-user-plus"></i><span>افزودن کاربر</span>
+                </button>
+                <button
+                  class="action-btn"
+                  onclick="showToast('فاکتور جدید ایجاد شد', 'success')"
+                >
+                  <i class="fas fa-file-invoice"></i><span>ایجاد فاکتور</span>
+                </button>
+                <button
+                  class="action-btn"
+                  onclick="showToast('گزارش کامل دانلود شد', 'info')"
+                >
+                  <i class="fas fa-download"></i><span>دریافت گزارش</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="glass-card">
+              <div class="card-header">
+                <h2>فعالیت‌های اخیر</h2>
+                <button
+                  class="btn-secondary"
+                  onclick="showToast('همه فعالیت‌ها بارگذاری شدند', 'info')"
+                >
+                  مشاهده همه
+                </button>
+              </div>
+              <div class="activities-list">
+                <div class="activity-item">
+                  <div class="activity-icon blue">
+                    <i class="fas fa-user-plus"></i>
+                  </div>
+                  <div class="activity-info">
+                    <h4>کاربر جدید ثبت نام کرد</h4>
+                    <p>۲ دقیقه پیش</p>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-icon green">
+                    <i class="fas fa-shopping-cart"></i>
+                  </div>
+                  <div class="activity-info">
+                    <h4>سفارش جدید دریافت شد</h4>
+                    <p>۱۵ دقیقه پیش</p>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-icon orange">
+                    <i class="fas fa-box"></i>
+                  </div>
+                  <div class="activity-info">
+                    <h4>محصول جدید اضافه شد</h4>
+                    <p>۱ ساعت پیش</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-card">
+              <div class="card-header">
+                <h2>آمار فروش ماهانه</h2>
+                <select class="select-dropdown" id="chartPeriodSelect">
+                  <option>این ماه</option>
+                  <option>ماه گذشته</option>
+                  <option>۳ ماه اخیر</option>
+                </select>
+              </div>
+              <div class="stats-chart">
+                <div class="chart-bars">
+                  <div class="chart-bar-item">
+                    <div class="chart-bar" style="height: 45%"></div>
+                    <span>هفته ۱</span>
+                  </div>
+                  <div class="chart-bar-item">
+                    <div class="chart-bar" style="height: 65%"></div>
+                    <span>هفته ۲</span>
+                  </div>
+                  <div class="chart-bar-item">
+                    <div class="chart-bar" style="height: 85%"></div>
+                    <span>هفته ۳</span>
+                  </div>
+                  <div class="chart-bar-item">
+                    <div class="chart-bar" style="height: 70%"></div>
+                    <span>هفته ۴</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-card">
+              <div class="card-header">
+                <h2>مشتریان برتر</h2>
+                <button class="btn-secondary" onclick="switchView('users')">
+                  مشاهده همه
+                </button>
+              </div>
+              <div class="customers-list">
+                <div class="customer-item">
+                  <img src="https://i.pravatar.cc/150?img=12" alt="" />
+                  <div class="customer-info">
+                    <h4>علی احمدی</h4>
+                    <p>۱۲ سفارش • ۵,۲۰۰,۰۰۰ تومان</p>
+                  </div>
+                  <div class="customer-badge">
+                    <i class="fas fa-star"></i><span>VIP</span>
+                  </div>
+                </div>
+                <div class="customer-item">
+                  <img src="https://i.pravatar.cc/150?img=33" alt="" />
+                  <div class="customer-info">
+                    <h4>سارا محمدی</h4>
+                    <p>۸ سفارش • ۳,۸۰۰,۰۰۰ تومان</p>
+                  </div>
+                  <div class="customer-badge">
+                    <i class="fas fa-star"></i><span>VIP</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: USERS -->
+      <div id="view-users" class="admin-view">
+        <div class="dashboard-content">
+          <div
+            class="page-title"
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <div>
+              <h1>مدیریت کاربران</h1>
+              <p>لیست کامل کاربران و مدیریت دسترسی‌ها</p>
+            </div>
+            <button class="btn-primary" onclick="openModal('addUserModal')">
+              <i class="fas fa-user-plus"></i> افزودن کاربر
+            </button>
+          </div>
+          <div class="glass-card">
+            <div class="card-header">
+              <h2>لیست کاربران سیستم</h2>
+              <input
+                type="text"
+                id="userTableSearch"
+                class="form-control"
+                style="max-width: 250px; padding: 8px 12px"
+                placeholder="جستجوی کاربر..."
+              />
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="usersManageTable">
+                <thead>
+                  <tr>
+                    <th>شناسه</th>
+                    <th>نام</th>
+                    <th>ایمیل / موبایل</th>
+                    <th>نقش</th>
+                    <th>وضعیت</th>
+                    <th>عملیات</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: PRODUCTS -->
+      <div id="view-products" class="admin-view">
+        <div class="dashboard-content">
+          <div
+            class="page-title"
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <div>
+              <h1>مدیریت محصولات</h1>
+              <p>مدیریت کالاها، قیمت‌ها و موجودی انبار</p>
+            </div>
+            <button class="btn-primary" onclick="openModal('addProductModal')">
+              <i class="fas fa-plus"></i> افزودن محصول
+            </button>
+          </div>
+          <div class="glass-card">
+            <div class="card-header">
+              <h2>لیست محصولات انبار</h2>
+              <input
+                type="text"
+                id="productTableSearch"
+                class="form-control"
+                style="max-width: 250px; padding: 8px 12px"
+                placeholder="جستجوی محصول..."
+              />
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="productsManageTable">
+                <thead>
+                  <tr>
+                    <th>تصویر</th>
+                    <th>نام محصول</th>
+                    <th>دسته‌بندی</th>
+                    <th>قیمت (تومان)</th>
+                    <th>موجودی</th>
+                    <th>عملیات</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 4: ORDERS -->
+      <div id="view-orders" class="admin-view">
+        <div class="dashboard-content">
+          <div class="page-title">
+            <h1>مدیریت سفارشات</h1>
+            <p>بررسی و پیگیری سفارشات ثبت شده</p>
+          </div>
+          <div class="glass-card">
+            <div class="card-header">
+              <h2>کلیه سفارشات</h2>
+              <select class="select-dropdown" id="orderStatusFilter">
+                <option value="all">همه وضعیت‌ها</option>
+                <option value="success">تکمیل شده</option>
+                <option value="pending">در حال پردازش</option>
+                <option value="cancelled">لغو شده</option>
+              </select>
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="ordersFullTable">
+                <thead>
+                  <tr>
+                    <th>شماره سفارش</th>
+                    <th>مشتری</th>
+                    <th>محصول</th>
+                    <th>مبلغ</th>
+                    <th>تاریخ ثبت</th>
+                    <th>وضعیت</th>
+                    <th>عملیات</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 5: SETTINGS -->
+      <div id="view-settings" class="admin-view">
+        <div class="dashboard-content">
+          <div class="page-title">
+            <h1>تنظیمات سیستم</h1>
+            <p>پیکربندی پارامترهای عمومی و امنیتی</p>
+          </div>
+          <div class="content-grid">
+            <div class="glass-card">
+              <div class="card-header"><h2>تنظیمات عمومی سایت</h2></div>
+              <form
+                onsubmit="
+                  event.preventDefault();
+                  showToast('تنظیمات عمومی ذخیره شد', 'success');
+                "
+              >
+                <div class="form-group">
+                  <label>نام وب‌سایت</label
+                  ><input
+                    type="text"
+                    class="form-control"
+                    value="فروشگاه اینترنتی و پنل مدیریت"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>ایمیل پشتیبانی</label
+                  ><input
+                    type="email"
+                    class="form-control"
+                    value="support@example.com"
+                  />
+                </div>
+                <button type="submit" class="btn-primary">ذخیره تغییرات</button>
+              </form>
+            </div>
+            <div class="glass-card">
+              <div class="card-header"><h2>امنیت و رمز عبور</h2></div>
+              <form
+                onsubmit="
+                  event.preventDefault();
+                  showToast('رمز عبور با موفقیت به‌روزرسانی شد', 'success');
+                "
+              >
+                <div class="form-group">
+                  <label>رمز عبور فعلی</label
+                  ><input
+                    type="password"
+                    class="form-control"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>رمز عبور جدید</label
+                  ><input
+                    type="password"
+                    class="form-control"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <button type="submit" class="btn-primary">
+                  تغییر رمز عبور
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: SITE CONTENT -->
+      <div id="view-site-content" class="admin-view">
+        <div class="dashboard-content">
+          <div class="page-title">
+            <h1>مدیریت محتوای آیتم‌ها</h1>
+            <p>ویرایش متن، بلوک‌های محتوا، ویدیو و فایل‌های دانلود</p>
+          </div>
+
+          <div class="glass-card">
+            <div
+              class="card-header"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 1rem;
+                flex-wrap: wrap;
+              "
+            >
+              <div style="display: flex; align-items: center; gap: 1.5rem">
+                <h2>لیست آیتم‌های سایت</h2>
+                <button
+                  type="button"
+                  class="btn-primary"
+                  id="addNewContentItemBtn"
+                  style="
+                    background-color: #10b981;
+                    border-color: #10b981;
+                    font-size: 14px;
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                  "
+                >
+                  + افزودن آیتم جدید
+                </button>
+              </div>
+              <input
+                type="text"
+                id="contentTableSearch"
+                class="form-control"
+                placeholder="جستجو در آیتم‌ها..."
+                style="max-width: 280px"
+              />
+            </div>
+            <div
+              id="groupedContentContainer"
+              class="grouped-content-container"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 6: ANALYTICS -->
+      <div id="view-analytics" class="admin-view">
+        <div class="dashboard-content">
+          <div class="page-title">
+            <h1>تحلیل و گزارش‌ها</h1>
+            <p>آمار دقیق فروش و نمودارهای عملکردی</p>
+          </div>
+          <div class="glass-card">
+            <div class="card-header"><h2>نمودار درآمد سالانه</h2></div>
+            <div class="stats-chart" style="height: 250px">
+              <div class="chart-bars" style="height: 220px">
+                <div class="chart-bar-item">
+                  <div class="chart-bar" style="height: 30%"></div>
+                  <span>فروردین</span>
+                </div>
+                <div class="chart-bar-item">
+                  <div class="chart-bar" style="height: 55%"></div>
+                  <span>اردیبهشت</span>
+                </div>
+                <div class="chart-bar-item">
+                  <div class="chart-bar" style="height: 75%"></div>
+                  <span>خرداد</span>
+                </div>
+                <div class="chart-bar-item">
+                  <div class="chart-bar" style="height: 90%"></div>
+                  <span>تیر</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 7: MESSAGES -->
+      <div id="view-messages" class="admin-view">
+        <div class="dashboard-content">
+          <div class="page-title">
+            <h1>پیام‌های کاربران</h1>
+            <p>صندوق پیام‌ها و تیکت‌های پشتیبانی</p>
+          </div>
+          <div class="glass-card">
+            <div class="card-header"><h2>صندوق پیام‌ها</h2></div>
+            <div class="notifications-list" id="messagesListContainer"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MODAL: ADD PRODUCT -->
+    <div class="modal-overlay" id="addProductModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>افزودن محصول جدید</h3>
+          <button class="modal-close" onclick="closeModal('addProductModal')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="addProductForm">
+          <div class="form-group">
+            <label>نام محصول</label
+            ><input
+              type="text"
+              id="newProdName"
+              class="form-control"
+              required
+              placeholder="مثلا: مک‌بوک پرو M3"
+            />
+          </div>
+          <div class="form-group">
+            <label>دسته‌بندی</label>
+            <select
+              id="newProdCat"
+              class="form-control select-dropdown"
+              style="width: 100%"
+            >
+              <option>دیجیتال و لپ‌تاپ</option>
+              <option>گوشی موبایل</option>
+              <option>لوازم جانبی</option>
+              <option>ساعت هوشمند</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>قیمت (تومان)</label
+            ><input
+              type="text"
+              id="newProdPrice"
+              class="form-control"
+              required
+              placeholder="۷۵,۰۰۰,۰۰۰"
+            />
+          </div>
+          <div class="form-group">
+            <label>موجودی انبار</label
+            ><input
+              type="number"
+              id="newProdStock"
+              class="form-control"
+              required
+              value="10"
+            />
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="closeModal('addProductModal')"
+            >
+              انصراف
+            </button>
+            <button type="submit" class="btn-primary">ثبت و افزودن</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: ADD USER -->
+    <div class="modal-overlay" id="addUserModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>افزودن کاربر جدید</h3>
+          <button class="modal-close" onclick="closeModal('addUserModal')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="addUserForm">
+          <div class="form-group">
+            <label>نام و نام خانوادگی</label
+            ><input
+              type="text"
+              id="newUserName"
+              class="form-control"
+              required
+              placeholder="رضا بهرامی"
+            />
+          </div>
+          <div class="form-group">
+            <label>ایمیل یا موبایل</label
+            ><input
+              type="text"
+              id="newUserEmail"
+              class="form-control"
+              required
+              placeholder="reza@example.com"
+            />
+          </div>
+          <div class="form-group">
+            <label>نقش کاربر</label>
+            <select
+              id="newUserRole"
+              class="form-control select-dropdown"
+              style="width: 100%"
+            >
+              <option>مشتری عادی</option>
+              <option>مدیر فروش</option>
+              <option>پشتیبان</option>
+              <option>مدیر سیستم</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="closeModal('addUserModal')"
+            >
+              انصراف
+            </button>
+            <button type="submit" class="btn-primary">ثبت کاربر</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: EDIT PROFILE -->
+    <div class="modal-overlay" id="editProfileModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>پروفایل مدیر کل سایت</h3>
+          <button class="modal-close" onclick="closeModal('editProfileModal')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="editProfileForm">
+          <div class="form-group">
+            <label>نام مدیر کل</label>
+            <input
+              type="text"
+              id="editNameInput"
+              class="form-control"
+              value="مدیر کل سایت"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>سمت</label>
+            <input
+              type="text"
+              id="editRoleInput"
+              class="form-control"
+              value="مدیر ارشد و مالک سیستم"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>لینک تصویر پروفایل</label>
+            <input
+              type="text"
+              id="editAvatarInput"
+              class="form-control"
+              value="https://i.pravatar.cc/150?img=33"
+            />
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="closeModal('editProfileModal')"
+            >
+              انصراف
+            </button>
+            <button type="submit" class="btn-primary">ذخیره تغییرات</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: EDIT SITE CONTENT -->
+    <div class="modal-overlay" id="editContentModal">
+      <div class="modal-box modal-box--wide">
+        <div class="modal-header">
+          <h3>ویرایش محتوای آیتم</h3>
+          <button class="modal-close" onclick="closeModal('editContentModal')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="editContentForm">
+          <input type="hidden" id="editContentItemId" />
+
+          <div class="content-editor_meta">
+            <p class="content-editor_meta-sub" id="editContentCategory"></p>
+          </div>
+
+          <div
+            class="form-row"
+            style="display: flex; gap: 1rem; margin-bottom: 1rem"
+          >
+            <div class="form-group" style="flex: 1">
+              <label>عنوان آیتم (Title)</label>
+              <input
+                type="text"
+                id="editContentTitleInput"
+                class="form-control"
+                placeholder="عنوان آیتم"
+                required
+              />
+            </div>
+            <div class="form-group" style="flex: 1">
+              <label>آدرس تصویر شاخص (Image URL)</label>
+              <input
+                type="text"
+                id="editContentImageInput"
+                class="form-control"
+                placeholder="آدرس تصویر (مثال: ../images/ravin.png)"
+              />
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem">
+            <label>خلاصه (excerpt)</label>
+            <textarea
+              id="editContentExcerpt"
+              class="form-control"
+              rows="2"
+              placeholder="متن کوتاه برای کارت‌ها و لیست"
+            ></textarea>
+          </div>
+
+          <div class="content-editor_section">
+            <div class="content-editor_section-header">
+              <h4>بلوک‌های متن</h4>
+              <div class="content-editor_toolbar">
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  data-add-block="heading"
+                >
+                  + عنوان
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  data-add-block="paragraph"
+                >
+                  + پاراگراف
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  data-add-block="list"
+                >
+                  + لیست
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  data-add-block="ordered-list"
+                >
+                  + لیست شماره‌دار
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  data-add-block="quote"
+                >
+                  + نقل‌قول
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  data-add-block="link"
+                >
+                  + لینک
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  data-add-block="image"
+                >
+                  + تصویر
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  data-add-block="divider"
+                >
+                  + جداکننده
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  data-add-block="html"
+                >
+                  + HTML سفارشی
+                </button>
+              </div>
+            </div>
+            <div id="contentBlocksEditor" class="content-blocks-editor"></div>
+          </div>
+
+          <div class="content-editor_section">
+            <div class="content-editor_section-header">
+              <h4>ویدیو</h4>
+              <label class="content-editor_toggle">
+                <input type="checkbox" id="contentVideoEnabled" />
+                <span>نمایش ویدیو</span>
+              </label>
+            </div>
+            <div id="contentVideoFields" hidden>
+              <div class="form-group">
+                <label>لینک ویدیو</label>
+                <input
+                  type="text"
+                  id="contentVideoUrl"
+                  class="form-control"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>سرویس</label>
+                  <select
+                    id="contentVideoProvider"
+                    class="form-control select-dropdown"
+                  >
+                    <option value="youtube">یوتیوب</option>
+                    <option value="aparat">آپارات</option>
+                    <option value="file">فایل مستقیم</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>عنوان ویدیو</label>
+                  <input
+                    type="text"
+                    id="contentVideoTitle"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-editor_section">
+            <div class="content-editor_section-header">
+              <h4>فایل‌های دانلود</h4>
+              <button type="button" class="btn-secondary" id="addDownloadBtn">
+                + افزودن فایل
+              </button>
+            </div>
+            <div
+              id="contentDownloadsEditor"
+              class="content-downloads-editor"
+            ></div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="closeModal('editContentModal')"
+            >
+              انصراف
+            </button>
+            <button type="button" class="btn-secondary" id="resetContentBtn">
+              بازگشت به پیش‌فرض
+            </button>
+            <button type="submit" class="btn-primary">ذخیره محتوا</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: ADD NEW ITEM -->
+    <div class="modal-overlay" id="addNewItemModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>افزودن آیتم جدید به سایت</h3>
+          <button class="modal-close" onclick="closeModal('addNewItemModal')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="addNewItemForm">
+          <div class="form-group" style="margin-bottom: 1rem">
+            <label>شناسه یکتای آیتم (ID به انگلیسی)</label>
+            <input
+              type="text"
+              id="newItemId"
+              class="form-control"
+              placeholder="مثال: custom-article-1"
+              required
+            />
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem">
+            <label>دسته هدف (کجا نمایش داده شود؟)</label>
+            <select
+              id="newItemCategory"
+              class="form-control select-dropdown"
+              required
+              style="
+                width: 100%;
+                padding: 8px;
+                border-radius: 6px;
+                background: #1e293b;
+                color: #f1f5f9;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+              "
+            >
+              <!-- Populate dynamically with JS -->
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem">
+            <label>عنوان آیتم</label>
+            <input
+              type="text"
+              id="newItemTitle"
+              class="form-control"
+              placeholder="عنوان آیتم جدید"
+              required
+            />
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem">
+            <label>آدرس تصویر شاخص</label>
+            <input
+              type="text"
+              id="newItemImage"
+              class="form-control"
+              placeholder="../images/ravin.png"
+              value="../images/ravin.png"
+            />
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem">
+            <label>خلاصه (Excerpt)</label>
+            <textarea
+              id="newItemExcerpt"
+              class="form-control"
+              rows="3"
+              placeholder="توضیح کوتاه برای نمایش در کارت‌ها"
+            ></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="closeModal('addNewItemModal')"
+            >
+              انصراف
+            </button>
+            <button type="submit" class="btn-primary">ثبت آیتم جدید</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- UP BUTTON -->
+    <button class="scroll-top-btn">
+      <i class="fa-solid fa-chevron-up"></i>
+    </button>
+
+    <script src="../scripts/api.js"></script>
+    <script src="../scripts/app-shell.js"></script>
+    <script src="../scripts/header-items.js"></script>
+    <script src="../scripts/item-content.js"></script>
+    <script src="../scripts/main-items.js"></script>
+    <script src="../scripts/item-store.js"></script>
+    <script src="../scripts/data.js"></script>
+    <script src="../scripts/admin-content.js"></script>
+    <script src="../scripts/admin.js"></script>
+    <script src="../scripts/up-btn.js"></script>
+  </body>
+</html>

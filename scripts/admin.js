@@ -1,0 +1,681 @@
+/**
+ * Complete Admin Panel JavaScript
+ * Fully interactive views, CRUD operations, search filters, notifications, and modals.
+ */
+
+let appState = {
+  users: [
+    {
+      id: 1,
+      name: "علی احمدی",
+      contact: "ali@example.com",
+      role: "مشتری VIP",
+      status: "فعال",
+    },
+    {
+      id: 2,
+      name: "سارا محمدی",
+      contact: "sara@example.com",
+      role: "مشتری VIP",
+      status: "فعال",
+    },
+    {
+      id: 3,
+      name: "محمد رضایی",
+      contact: "mohammad@example.com",
+      role: "مدیر فروش",
+      status: "فعال",
+    },
+    {
+      id: 4,
+      name: "زهرا کریمی",
+      contact: "zahra@example.com",
+      role: "مشتری عادی",
+      status: "غیرفعال",
+    },
+    {
+      id: 5,
+      name: "حسین نوری",
+      contact: "hossein@example.com",
+      role: "پشتیبان",
+      status: "فعال",
+    },
+  ],
+  products: [
+    {
+      id: 101,
+      name: "لپ‌تاپ ایسوس ROG",
+      category: "دیجیتال و لپ‌تاپ",
+      price: "۲۵,۰۰۰,۰۰۰ تومان",
+      stock: 14,
+      img: "https://via.placeholder.com/60",
+    },
+    {
+      id: 102,
+      name: "گوشی آیفون ۱۵ پرو",
+      category: "گوشی موبایل",
+      price: "۴۵,۰۰۰,۰۰۰ تومان",
+      stock: 8,
+      img: "https://via.placeholder.com/60",
+    },
+    {
+      id: 103,
+      name: "ایرپاد پرو اپل",
+      category: "لوازم جانبی",
+      price: "۸,۰۰۰,۰۰۰ تومان",
+      stock: 25,
+      img: "https://via.placeholder.com/60",
+    },
+    {
+      id: 104,
+      name: "اپل واچ سری ۹",
+      category: "ساعت هوشمند",
+      price: "۱۲,۰۰۰,۰۰۰ تومان",
+      stock: 11,
+      img: "https://via.placeholder.com/60",
+    },
+  ],
+  orders: [
+    {
+      id: "#۱۲۳۴۵",
+      customer: "علی احمدی",
+      product: "لپ‌تاپ ایسوس",
+      amount: "۲۵,۰۰۰,۰۰۰ تومان",
+      date: "۱۴۰۴/۰۴/۲۸",
+      status: "success",
+    },
+    {
+      id: "#۱۲۳۴۴",
+      customer: "سارا محمدی",
+      product: "گوشی سامسونگ",
+      amount: "۱۵,۰۰۰,۰۰۰ تومان",
+      date: "۱۴۰۴/۰۴/۲۷",
+      status: "pending",
+    },
+    {
+      id: "#۱۲۳۴۳",
+      customer: "محمد رضایی",
+      product: "هدفون بلوتوثی",
+      amount: "۱,۵۰۰,۰۰۰ تومان",
+      date: "۱۴۰۴/۰۴/۲۶",
+      status: "success",
+    },
+    {
+      id: "#۱۲۳۴۲",
+      customer: "زهرا کریمی",
+      product: "تبلت اپل",
+      amount: "۲۰,۰۰۰,۰۰۰ تومان",
+      date: "۱۴۰۴/۰۴/۲۵",
+      status: "cancelled",
+    },
+    {
+      id: "#۱۲۳۴۱",
+      customer: "حسین نوری",
+      product: "ساعت هوشمند",
+      amount: "۳,۵۰۰,۰۰۰ تومان",
+      date: "۱۴۰۴/۰۴/۲۴",
+      status: "pending",
+    },
+  ],
+  notifications: [
+    {
+      id: 1,
+      title: "سفارش جدید",
+      desc: "سفارش شماره #۱۲۳۴۵ ثبت شد",
+      time: "الان",
+      unread: true,
+    },
+    {
+      id: 2,
+      title: "پرداخت موفق",
+      desc: "پرداخت سفارش #۱۲۳۴۴ تکمیل شد",
+      time: "۵ دقیقه پیش",
+      unread: true,
+    },
+    {
+      id: 3,
+      title: "موجودی کم",
+      desc: "محصول لپ‌تاپ ایسوس موجودی کمی دارد",
+      time: "۱ ساعت پیش",
+      unread: false,
+    },
+    {
+      id: 4,
+      title: "کاربر جدید",
+      desc: "کاربر جدید در سیستم ثبت نام کرد",
+      time: "۲ ساعت پیش",
+      unread: false,
+    },
+  ],
+  messages: [
+    {
+      id: 1,
+      sender: "علی احمدی",
+      text: "سلام، کی سفارش من ارسال میشه؟",
+      time: "۳ ساعت پیش",
+    },
+    {
+      id: 2,
+      sender: "سارا محمدی",
+      text: "تشکر از پشتیبانی عالی شما",
+      time: "دیروز",
+    },
+    {
+      id: 3,
+      sender: "رضا مرادی",
+      text: "سوالی درباره گارانتی محصول داشتم",
+      time: "۲ روز پیش",
+    },
+  ],
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  initNavigation();
+  initMobileSidebar();
+  initTables();
+  initNotifications();
+  initModals();
+  initSearch();
+
+  // Handle direct hash navigation on page load
+  const currentHash = window.location.hash;
+  if (currentHash && currentHash.startsWith("#")) {
+    const viewName = currentHash.substring(1).replace("-list", "");
+    let mappedView = viewName;
+    if (["users", "users-list", "add-user", "user-roles"].includes(viewName)) {
+      mappedView = "users";
+    } else if (
+      [
+        "products",
+        "products-list",
+        "add-product",
+        "categories",
+        "inventory",
+      ].includes(viewName)
+    ) {
+      mappedView = "products";
+    } else if (["general", "security", "notifications"].includes(viewName)) {
+      mappedView = "settings";
+    } else if (viewName === "site-content") {
+      mappedView = "site-content";
+    } else if (viewName === "analytics") {
+      mappedView = "analytics";
+    } else if (viewName === "messages") {
+      mappedView = "messages";
+    }
+
+    if (document.getElementById(`view-${mappedView}`)) {
+      switchView(mappedView);
+    }
+  }
+
+  console.log("🎉 پنل مدیریت کل با موفقیت بارگذاری و فعال شد.");
+});
+
+// --- View Router & Navigation ---
+function switchView(viewName) {
+  document.querySelectorAll(".admin-view").forEach((view) => {
+    view.classList.remove("active");
+  });
+
+  const targetView = document.getElementById(`view-${viewName}`);
+  if (targetView) {
+    targetView.classList.add("active");
+  }
+
+  document.querySelectorAll(".sidebar-nav li").forEach((li) => {
+    li.classList.remove("active");
+    if (li.getAttribute("data-view") === viewName) {
+      li.classList.add("active");
+    }
+  });
+
+  document.getElementById("sidebar").classList.remove("active");
+  document.getElementById("overlay").classList.remove("active");
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  // Dynamically trigger rendering of site content if the view is active
+  if (viewName === "site-content" && typeof renderContentTable === "function") {
+    renderContentTable();
+  }
+}
+
+function initNavigation() {
+  const navLinks = document.querySelectorAll(
+    ".sidebar-nav a:not(.dropdown-toggle)",
+  );
+  navLinks.forEach((link) => {
+    link.addEventListener("click", (e) => {
+      const href = link.getAttribute("href");
+      if (href && href.startsWith("#")) {
+        const viewName = href.substring(1).replace("-list", "");
+        let mappedView = viewName;
+        if (
+          ["users", "users-list", "add-user", "user-roles"].includes(viewName)
+        )
+          mappedView = "users";
+        else if (
+          [
+            "products",
+            "products-list",
+            "add-product",
+            "categories",
+            "inventory",
+          ].includes(viewName)
+        )
+          mappedView = "products";
+        else if (["general", "security", "notifications"].includes(viewName))
+          mappedView = "settings";
+        else if (viewName === "site-content") mappedView = "site-content";
+
+        if (document.getElementById(`view-${mappedView}`)) {
+          e.preventDefault();
+          switchView(mappedView);
+          window.location.hash = href;
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll(".dropdown-toggle").forEach((toggle) => {
+    toggle.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggle.parentElement.classList.toggle("active");
+    });
+  });
+}
+
+function initMobileSidebar() {
+  const menuToggle = document.getElementById("menuToggle");
+  const closeSidebar = document.getElementById("closeSidebar");
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+
+  menuToggle.addEventListener("click", () => {
+    sidebar.classList.add("active");
+    overlay.classList.add("active");
+  });
+
+  closeSidebar.addEventListener("click", () => {
+    sidebar.classList.remove("active");
+    overlay.classList.remove("active");
+  });
+
+  overlay.addEventListener("click", () => {
+    sidebar.classList.remove("active");
+    overlay.classList.remove("active");
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    if (confirm("آیا می‌خواهید از پنل مدیریت کل خارج شوید؟")) {
+      showToast("با موفقیت خارج شدید", "info");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  });
+}
+
+function initTables() {
+  renderDashboardOrders();
+  renderDashboardProducts();
+  renderUsersTable();
+  renderProductsTable();
+  renderOrdersTable();
+  renderMessages();
+}
+
+function renderDashboardOrders() {
+  const tbody = document.querySelector("#dashboardOrdersTable tbody");
+  if (!tbody) return;
+  tbody.innerHTML = appState.orders
+    .slice(0, 5)
+    .map(
+      (order) => `
+        <tr>
+            <td>${order.id}</td>
+            <td>${order.customer}</td>
+            <td>${order.product}</td>
+            <td>${order.amount}</td>
+            <td><span class="status ${order.status}">${getStatusText(order.status)}</span></td>
+        </tr>
+    `,
+    )
+    .join("");
+}
+
+function renderDashboardProducts() {
+  const container = document.getElementById("dashboardTopProducts");
+  if (!container) return;
+  container.innerHTML = appState.products
+    .slice(0, 4)
+    .map(
+      (prod) => `
+        <div class="product-item">
+            <img src="${prod.img}" alt="${prod.name}">
+            <div class="product-info">
+                <h4>${prod.name}</h4>
+                <p>موجودی: ${prod.stock} عدد</p>
+            </div>
+            <div class="product-price">
+                <span>${prod.price}</span>
+            </div>
+        </div>
+    `,
+    )
+    .join("");
+}
+
+function renderUsersTable() {
+  const tbody = document.querySelector("#usersManageTable tbody");
+  if (!tbody) return;
+  tbody.innerHTML = appState.users
+    .map(
+      (user) => `
+        <tr>
+            <td>#${user.id}</td>
+            <td>${user.name}</td>
+            <td>${user.contact}</td>
+            <td>${user.role}</td>
+            <td><span class="status ${user.status === "فعال" ? "success" : "cancelled"}">${user.status}</span></td>
+            <td>
+                <button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="editUser(${user.id})">ویرایش</button>
+                <button class="btn-secondary" style="padding: 4px 8px; font-size: 11px; color: var(--danger); border-color: rgba(255,59,48,0.3);" onclick="deleteUser(${user.id})">حذف</button>
+            </td>
+        </tr>
+    `,
+    )
+    .join("");
+}
+
+function renderProductsTable() {
+  const tbody = document.querySelector("#productsManageTable tbody");
+  if (!tbody) return;
+  tbody.innerHTML = appState.products
+    .map(
+      (prod) => `
+        <tr>
+            <td><img src="${prod.img}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;" alt=""></td>
+            <td>${prod.name}</td>
+            <td>${prod.category}</td>
+            <td>${prod.price}</td>
+            <td>${prod.stock} عدد</td>
+            <td>
+                <button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="editProduct(${prod.id})">ویرایش</button>
+                <button class="btn-secondary" style="padding: 4px 8px; font-size: 11px; color: var(--danger); border-color: rgba(255,59,48,0.3);" onclick="deleteProduct(${prod.id})">حذف</button>
+            </td>
+        </tr>
+    `,
+    )
+    .join("");
+}
+
+function renderOrdersTable() {
+  const tbody = document.querySelector("#ordersFullTable tbody");
+  if (!tbody) return;
+  tbody.innerHTML = appState.orders
+    .map(
+      (order) => `
+        <tr>
+            <td>${order.id}</td>
+            <td>${order.customer}</td>
+            <td>${order.product}</td>
+            <td>${order.amount}</td>
+            <td>${order.date}</td>
+            <td><span class="status ${order.status}">${getStatusText(order.status)}</span></td>
+            <td>
+                <button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="showToast('جزئیات سفارش ${order.id} باز شد', 'info')">بررسی</button>
+            </td>
+        </tr>
+    `,
+    )
+    .join("");
+}
+
+function renderMessages() {
+  const container = document.getElementById("messagesListContainer");
+  if (!container) return;
+  container.innerHTML = appState.messages
+    .map(
+      (msg) => `
+        <div class="notification-item unread">
+            <div class="notification-icon blue"><i class="fas fa-envelope"></i></div>
+            <div class="notification-info">
+                <h4>${msg.sender}</h4>
+                <p>${msg.text}</p>
+                <span class="notification-time">${msg.time}</span>
+            </div>
+        </div>
+    `,
+    )
+    .join("");
+}
+
+function getStatusText(status) {
+  if (status === "success") return "تکمیل شده";
+  if (status === "pending") return "در حال پردازش";
+  if (status === "cancelled") return "لغو شده";
+  return status;
+}
+
+function openModal(modalId) {
+  document.getElementById(modalId).classList.add("active");
+  document.getElementById("overlay").classList.add("active");
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove("active");
+  document.getElementById("overlay").classList.remove("active");
+}
+
+function initModals() {
+  // Add Product Form
+  const addProductForm = document.getElementById("addProductForm");
+  if (addProductForm) {
+    addProductForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("newProdName").value;
+      const category = document.getElementById("newProdCat").value;
+      const price = document.getElementById("newProdPrice").value + " تومان";
+      const stock = parseInt(document.getElementById("newProdStock").value);
+
+      appState.products.unshift({
+        id: Date.now(),
+        name,
+        category,
+        price,
+        stock,
+        img: "https://via.placeholder.com/60",
+      });
+
+      renderProductsTable();
+      renderDashboardProducts();
+      closeModal("addProductModal");
+      addProductForm.reset();
+      showToast("محصول جدید با موفقیت افزوده شد", "success");
+    });
+  }
+
+  // Add User Form
+  const addUserForm = document.getElementById("addUserForm");
+  if (addUserForm) {
+    addUserForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("newUserName").value;
+      const contact = document.getElementById("newUserEmail").value;
+      const role = document.getElementById("newUserRole").value;
+
+      appState.users.unshift({
+        id: appState.users.length + 1,
+        name,
+        contact,
+        role,
+        status: "فعال",
+      });
+
+      renderUsersTable();
+      closeModal("addUserModal");
+      addUserForm.reset();
+      showToast("کاربر جدید با موفقیت ثبت شد", "success");
+    });
+  }
+
+  // Edit Profile Form (Manager / Super Admin)
+  const editProfileForm = document.getElementById("editProfileForm");
+  if (editProfileForm) {
+    editProfileForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const newName = document.getElementById("editNameInput").value;
+      const newRole = document.getElementById("editRoleInput").value;
+      const newAvatar = document.getElementById("editAvatarInput").value;
+
+      document.getElementById("sidebarUserName").textContent = newName;
+      document.getElementById("sidebarUserRole").textContent = newRole;
+      if (newAvatar) {
+        document.getElementById("sidebarAvatar").src = newAvatar;
+      }
+
+      closeModal("editProfileModal");
+      showToast("پروفایل مدیر کل با موفقیت به‌روزرسانی شد", "success");
+    });
+  }
+}
+
+function deleteUser(id) {
+  if (confirm("آیا از حذف این کاربر توسط مدیر کل اطمینان دارید؟")) {
+    appState.users = appState.users.filter((u) => u.id !== id);
+    renderUsersTable();
+    showToast("کاربر از سیستم حذف شد", "error");
+  }
+}
+
+function editUser(id) {
+  const user = appState.users.find((u) => u.id === id);
+  if (user) {
+    const newName = prompt("ویرایش نام کاربر:", user.name);
+    if (newName) {
+      user.name = newName;
+      renderUsersTable();
+      showToast("اطلاعات کاربر به‌روز شد", "success");
+    }
+  }
+}
+
+function deleteProduct(id) {
+  if (confirm("آیا از حذف این محصول اطمینان دارید؟")) {
+    appState.products = appState.products.filter((p) => p.id !== id);
+    renderProductsTable();
+    renderDashboardProducts();
+    showToast("محصول با موفقیت حذف شد", "error");
+  }
+}
+
+function editProduct(id) {
+  const prod = appState.products.find((p) => p.id === id);
+  if (prod) {
+    const newPrice = prompt("ویرایش قیمت محصول:", prod.price);
+    if (newPrice) {
+      prod.price = newPrice;
+      renderProductsTable();
+      renderDashboardProducts();
+      showToast("قیمت محصول به‌روز شد", "success");
+    }
+  }
+}
+
+function initNotifications() {
+  const btn = document.getElementById("notificationBtn");
+  const dropdown = document.getElementById("notificationDropdown");
+  const markAllBtn = document.getElementById("markAllRead");
+
+  if (btn && dropdown) {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle("active");
+      renderNotificationDropdownItems();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+        dropdown.classList.remove("active");
+      }
+    });
+  }
+
+  if (markAllBtn) {
+    markAllBtn.addEventListener("click", () => {
+      appState.notifications.forEach((n) => (n.unread = false));
+      renderNotificationDropdownItems();
+      document.querySelector(".notification-dot").style.display = "none";
+      showToast("تمام اعلان‌ها خوانده شدند", "success");
+    });
+  }
+}
+
+function renderNotificationDropdownItems() {
+  const container = document.getElementById("notifListContainer");
+  if (!container) return;
+  container.innerHTML = appState.notifications
+    .map(
+      (n) => `
+        <div class="notif-item" style="${n.unread ? "background: rgba(0,122,255,0.08); font-weight: 600;" : ""}">
+            <div style="font-size: 13px; color: var(--text-primary);">${n.title}: ${n.desc}</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${n.time}</div>
+        </div>
+    `,
+    )
+    .join("");
+}
+
+function showToast(message, type = "success") {
+  const container = document.getElementById("toastContainer");
+  if (!container) return;
+
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+
+  let icon = "fa-check-circle";
+  if (type === "error") icon = "fa-exclamation-circle";
+  if (type === "info") icon = "fa-info-circle";
+
+  toast.innerHTML = `
+        <i class="fas ${icon}" style="font-size: 18px; color: var(--${type === "success" ? "success" : type === "error" ? "danger" : "primary"});"></i>
+        <span>${message}</span>
+    `;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.animation = "fadeOut 0.3s ease forwards";
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function initSearch() {
+  const userSearch = document.getElementById("userTableSearch");
+  if (userSearch) {
+    userSearch.addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase();
+      document.querySelectorAll("#usersManageTable tbody tr").forEach((row) => {
+        row.style.display = row.textContent.toLowerCase().includes(query)
+          ? ""
+          : "none";
+      });
+    });
+  }
+
+  const prodSearch = document.getElementById("productTableSearch");
+  if (prodSearch) {
+    prodSearch.addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase();
+      document
+        .querySelectorAll("#productsManageTable tbody tr")
+        .forEach((row) => {
+          row.style.display = row.textContent.toLowerCase().includes(query)
+            ? ""
+            : "none";
+        });
+    });
+  }
+}
