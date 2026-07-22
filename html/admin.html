@@ -923,6 +923,62 @@
       </div>
     </div>
 
+    <!-- MODAL: EDIT USER DETAILS -->
+    <div class="modal-overlay" id="editUserModal">
+      <div class="modal-box" style="max-width: 480px;">
+        <div class="modal-header">
+          <h3>ویرایش و مدیریت کاربر</h3>
+          <button class="modal-close" onclick="closeModal('editUserModal')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="editUserForm">
+          <input type="hidden" id="editUserId" />
+          
+          <div class="form-group" style="margin-bottom: 1rem; text-align: right;">
+            <label>نام و نام خانوادگی</label>
+            <input type="text" id="editUserName" class="form-control" required style="width: 100%;" />
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem; text-align: right;">
+            <label>نقش کاربری</label>
+            <select id="editUserRole" class="form-control select-dropdown" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1);">
+              <option value="کاربر عادی">کاربر عادی</option>
+              <option value="ادمین">ادمین</option>
+              <option value="مدیر سایت">مدیر سایت</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.5rem; text-align: right;">
+            <label>وضعیت حساب کاربری</label>
+            <select id="editUserStatus" class="form-control select-dropdown" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1);">
+              <option value="فعال">🟢 فعال</option>
+              <option value="غیرفعال">⚪ غیرفعال</option>
+              <option value="بلاک شده">🔴 مسدود شده (بلاک)</option>
+            </select>
+          </div>
+
+          <!-- Highly Visible Delete Button Inside Modal -->
+          <div style="background: rgba(255, 59, 48, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 59, 48, 0.15); margin-bottom: 1.5rem; text-align: center;">
+            <h4 style="color: var(--danger); margin-bottom: 6px; font-size: 14px;"><i class="fas fa-trash-alt"></i> حذف دائمی حساب کاربری</h4>
+            <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">با حذف کاربر، کلیه سوابق خرید و دسترسی‌های او برای همیشه پاک خواهد شد.</p>
+            <button type="button" class="btn-primary" id="deleteUserFromEditBtn" style="background: var(--danger); border-color: var(--danger); padding: 8px 16px; font-size: 13px; border-radius: 6px; cursor: pointer; font-weight: bold; border: none; display: inline-flex; align-items: center; gap: 6px; color: #fff;">🗑️ حذف کاربر</button>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="closeModal('editUserModal')"
+            >
+              انصراف
+            </button>
+            <button type="submit" class="btn-primary">ثبت تغییرات</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- MODAL: EDIT SITE CONTENT -->
     <div class="modal-overlay" id="editContentModal">
       <div class="modal-box modal-box--wide">
@@ -1267,6 +1323,33 @@
           >
             تایید و بستن صفحه
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: SAFETY CONFIRMATION WARNING WITH COUNTDOWN TIMER -->
+    <div class="modal-overlay" id="safetyWarningModal" style="z-index: 10001;">
+      <div class="modal-box" style="max-width: 420px; text-align: center;">
+        <div class="modal-header" style="justify-content: center; border-bottom: none; padding-bottom: 0;">
+          <h3 style="color: var(--danger);"><i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i> هشدار امنیتی بسیار مهم</h3>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem; text-align: center; direction: rtl;">
+          <p style="color: var(--text-primary); font-weight: bold; margin-bottom: 10px; font-size: 15px;" id="warningActionText">آیا از انجام این عملیات اطمینان دارید؟</p>
+          <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 1.5rem;">این تغییرات مستقیماً روی دسترسی‌ها و سوابق سرور اعمال خواهد شد.</p>
+          
+          <!-- Animated Countdown Timer Circle -->
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--danger); font-size: 2rem; font-weight: bold; color: var(--danger); margin-bottom: 1.5rem; background: rgba(255, 59, 48, 0.05);" id="warningTimerCount">
+            ۱۰
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button type="button" class="btn-primary" id="warningConfirmBtn" style="background: var(--danger); border-color: var(--danger); width: 100%; border-radius: 8px; padding: 12px; cursor: pointer; font-weight: bold; border: none; color: #fff;">
+              بله، مطمئن هستم (انجام فوری)
+            </button>
+            <button type="button" class="btn-secondary" id="warningCancelBtn" style="width: 100%; border-radius: 8px; padding: 12px; cursor: pointer;">
+              خیر، لغو عملیات
+            </button>
+          </div>
         </div>
       </div>
     </div>

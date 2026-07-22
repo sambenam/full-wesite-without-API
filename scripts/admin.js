@@ -66,6 +66,55 @@ function loadDynamicUsers() {
 
 let currentAdminUserRole = "manager";
 
+
+let safetyWarningState = {
+  timer: null,
+  countdown: 10,
+  actionCallback: null
+};
+
+function triggerSafetyWarning(actionText, callback) {
+  if (safetyWarningState.timer) {
+    clearInterval(safetyWarningState.timer);
+  }
+  
+  safetyWarningState.countdown = 10;
+  safetyWarningState.actionCallback = callback;
+  
+  document.getElementById("warningActionText").textContent = actionText;
+  document.getElementById("warningTimerCount").textContent = toPersianDigits(safetyWarningState.countdown);
+  
+  openModal("safetyWarningModal");
+  
+  safetyWarningState.timer = setInterval(() => {
+    safetyWarningState.countdown--;
+    document.getElementById("warningTimerCount").textContent = toPersianDigits(safetyWarningState.countdown);
+    
+    if (safetyWarningState.countdown <= 0) {
+      clearInterval(safetyWarningState.timer);
+      executeWarningAction();
+    }
+  }, 1000);
+}
+
+function executeWarningAction() {
+  if (safetyWarningState.timer) {
+    clearInterval(safetyWarningState.timer);
+  }
+  closeModal("safetyWarningModal");
+  if (typeof safetyWarningState.actionCallback === "function") {
+    safetyWarningState.actionCallback();
+  }
+}
+
+function cancelWarningAction() {
+  if (safetyWarningState.timer) {
+    clearInterval(safetyWarningState.timer);
+  }
+  closeModal("safetyWarningModal");
+  showToast("عملیات با موفقیت لغو شد.", "info");
+}
+
 let appState = {
   users: loadDynamicUsers(),
   products: loadDynamicProducts(),
@@ -726,6 +775,54 @@ function closeModal(modalId) {
 }
 
 function initModals() {
+  // Safety confirmation buttons
+  document.getElementById("warningConfirmBtn")?.addEventListener("click", executeWarningAction);
+  document.getElementById("warningCancelBtn")?.addEventListener("click", cancelWarningAction);
+
+  // Edit User Form Submission (With safety warning!)
+  const editUserForm = document.getElementById("editUserForm");
+  if (editUserForm) {
+    editUserForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      
+      const id = parseInt(document.getElementById("editUserId").value);
+      const name = document.getElementById("editUserName").value.trim();
+      const role = document.getElementById("editUserRole").value;
+      const status = document.getElementById("editUserStatus").value;
+
+      triggerSafetyWarning(`آیا از ثبت نهایی تغییرات کاربر «${name}» اطمینان دارید؟`, () => {
+        const user = appState.users.find(u => u.id === id);
+        if (user) {
+          user.name = name;
+          user.role = role;
+          user.status = status;
+          localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
+          renderUsersTable();
+          closeModal("editUserModal");
+          showToast(`مشخصات کاربر با موفقیت تغییر یافت.`, "success");
+        }
+      });
+    });
+  }
+
+  // Delete User button inside Edit Modal (With safety warning!)
+  const deleteUserFromEditBtn = document.getElementById("deleteUserFromEditBtn");
+  if (deleteUserFromEditBtn) {
+    deleteUserFromEditBtn.addEventListener("click", () => {
+      const id = parseInt(document.getElementById("editUserId").value);
+      const user = appState.users.find(u => u.id === id);
+      if (!user) return;
+
+      triggerSafetyWarning(`⚠️ هشدار جدی: آیا از حذف دائمی کاربر «${user.name}» از دیتابیس کل سیستم مطمئن هستید؟`, () => {
+        appState.users = appState.users.filter(u => u.id !== id);
+        localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
+        renderUsersTable();
+        closeModal("editUserModal");
+        showToast("حساب کاربری برای همیشه از کل دیتابیس حذف شد.", "error");
+      });
+    });
+  }
+
   // Bind radio button listeners for product access type
   const accessTypePremium = document.getElementById("accessTypePremium");
   const accessTypeFree = document.getElementById("accessTypeFree");
@@ -892,24 +989,24 @@ function initModals() {
 }
 
 function deleteUser(id) {
-  if (confirm("آیا از حذف این کاربر توسط مدیر کل اطمینان دارید؟")) {
-    appState.users = appState.users.filter((u) => u.id !== id);
-    localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
-    renderUsersTable();
-    showToast("کاربر از سیستم حذف شد", "error");
-  }
+  // Delete action is now moved inside the Edit User Modal for high safety!
+  showToast("حذف کاربر فقط از داخل منوی ویرایش کاربر امکان‌پذیر است.", "info");
 }
 
 function editUser(id) {
+  if (currentAdminUserRole === "admin") {
+    showToast("خطا: شما دسترسی لازم برای ویرایش کاربران را ندارید.", "error");
+    return;
+  }
+
   const user = appState.users.find((u) => u.id === id);
   if (user) {
-    const newName = prompt("ویرایش نام کاربر:", user.name);
-    if (newName) {
-      user.name = newName;
-      localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
-      renderUsersTable();
-      showToast("اطلاعات کاربر به‌روز شد", "success");
-    }
+    document.getElementById("editUserId").value = id;
+    document.getElementById("editUserName").value = user.name || "";
+    document.getElementById("editUserRole").value = user.role || "کاربر عادی";
+    document.getElementById("editUserStatus").value = user.status || "فعال";
+    
+    openModal("editUserModal");
   }
 }
 
