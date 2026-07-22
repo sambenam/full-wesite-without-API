@@ -804,14 +804,24 @@
               <option value="xlsx">فایل اکسل Excel</option>
             </select>
           </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>نوع دسترسی به محصول</label>
+            <div style="display: flex; gap: 1.5rem; margin-top: 6px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #f1f5f9; font-weight: 500;">
+                <input type="radio" name="prodAccessType" value="premium" checked id="accessTypePremium" /> 🔒 نقدی و پولی
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #f1f5f9; font-weight: 500;">
+                <input type="radio" name="prodAccessType" value="free" id="accessTypeFree" /> 🟢 کاملاً رایگان
+              </label>
+            </div>
+          </div>
           <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-            <div class="form-group" style="flex: 1;">
+            <div class="form-group" id="prodPriceContainer" style="flex: 1;">
               <label>قیمت (تومان)</label>
               <input
                 type="number"
                 id="newProdPrice"
                 class="form-control"
-                required
                 placeholder="مثال: 50000"
               />
             </div>
@@ -1119,6 +1129,19 @@
                     class="form-control"
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-editor_section" style="background: rgba(255, 149, 0, 0.05); border: 1px solid rgba(255, 149, 0, 0.15); border-radius: 12px; padding: 15px; margin-bottom: 1.5rem; text-align: right;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; direction: rtl;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: bold; color: #fff; user-select: none;">
+                <input type="checkbox" id="contentIsPaid" style="width: 18px; height: 18px; cursor: pointer;" />
+                <span>🔒 نیاز به خرید و قفل‌گذاری؟ (نقدی و پولی)</span>
+              </label>
+              <div id="contentPriceContainer" style="display: none; align-items: center; gap: 8px; direction: rtl;">
+                <label style="font-size: 13px; color: var(--text-secondary);">قیمت (تومان):</label>
+                <input type="number" id="contentItemPrice" class="form-control" placeholder="مثال: 50000" style="max-width: 140px; padding: 8px;" />
               </div>
             </div>
           </div>

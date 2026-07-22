@@ -207,6 +207,29 @@ function initContentAdmin() {
     videoEnabled.addEventListener("change", toggleVideoFields);
   }
 
+  // Toggle price visibility in content editor modal
+  const contentIsPaid = document.getElementById("contentIsPaid");
+  const contentPriceContainer = document.getElementById("contentPriceContainer");
+  const contentItemPrice = document.getElementById("contentItemPrice");
+
+  if (contentIsPaid && contentPriceContainer) {
+    contentIsPaid.addEventListener("change", function () {
+      if (contentIsPaid.checked) {
+        contentPriceContainer.style.display = "flex";
+        if (contentItemPrice) {
+          contentItemPrice.required = true;
+          contentItemPrice.value = "50000";
+        }
+      } else {
+        contentPriceContainer.style.display = "none";
+        if (contentItemPrice) {
+          contentItemPrice.required = false;
+          contentItemPrice.value = "0";
+        }
+      }
+    });
+  }
+
   renderContentTable();
 }
 
@@ -545,6 +568,39 @@ function openContentEditor(itemId) {
   renderBlocksEditor();
   renderDownloadsEditor();
   toggleVideoFields();
+
+  // Load associated product price to set isPaid checkbox and price input
+  const productsRaw = localStorage.getItem("irHesabdarProducts");
+  let productPrice = 0;
+  if (productsRaw) {
+    try {
+      const prods = JSON.parse(productsRaw);
+      if (Array.isArray(prods)) {
+        const associatedProd = prods.find(function(p) { return String(p.id) === String(itemId); });
+        if (associatedProd) {
+          productPrice = Number(associatedProd.price) || 0;
+        }
+      }
+    } catch(e) {}
+  }
+
+  const contentIsPaidInput = document.getElementById("contentIsPaid");
+  const contentPriceContainerDiv = document.getElementById("contentPriceContainer");
+  const contentItemPriceInput = document.getElementById("contentItemPrice");
+
+  if (contentIsPaidInput && contentPriceContainerDiv && contentItemPriceInput) {
+    if (productPrice > 0) {
+      contentIsPaidInput.checked = true;
+      contentPriceContainerDiv.style.display = "flex";
+      contentItemPriceInput.value = productPrice;
+      contentItemPriceInput.required = true;
+    } else {
+      contentIsPaidInput.checked = false;
+      contentPriceContainerDiv.style.display = "none";
+      contentItemPriceInput.value = "0";
+      contentItemPriceInput.required = false;
+    }
+  }
 
   openModal("editContentModal");
 }
@@ -1110,6 +1166,9 @@ function saveEditedContent() {
   const hasDownloads = downloads && downloads.length > 0;
   const hasVideo = content.video && content.video.enabled && content.video.url;
 
+  const isPaid = document.getElementById("contentIsPaid") ? document.getElementById("contentIsPaid").checked : false;
+  const contentPrice = isPaid ? parseFloat(document.getElementById("contentItemPrice").value || "0") : 0;
+
   if (hasDownloads || hasVideo) {
     const productsRaw = localStorage.getItem("irHesabdarProducts");
     let products = [];
@@ -1123,7 +1182,8 @@ function saveEditedContent() {
     const existingIdx = products.findIndex(function(p) { return String(p.id) === String(contentEditorState.itemId); });
     const finalTitle = title || (found ? found.item.title : "") || (hasDownloads ? downloads[0].title : content.video.title) || "محصول آموزشی";
     const finalImage = image || (found ? found.item.image : "") || "../images/ravin.png";
-    const finalPrice = existingIdx > -1 ? products[existingIdx].price : 50000;
+    
+    const finalPrice = contentPrice;
 
     let updatedProd = null;
     if (hasDownloads) {

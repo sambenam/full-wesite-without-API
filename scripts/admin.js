@@ -307,13 +307,19 @@ function renderDashboardOrders() {
 
 function formatProductPrice(price) {
   if (typeof price === "number") {
+    if (price === 0) {
+      return `<span class="status success" style="background: rgba(52, 199, 89, 0.1); color: #34c759; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px;">رایگان</span>`;
+    }
     return price.toLocaleString() + " تومان";
   }
   const cleanNum = parseFloat(String(price || "").replace(/[^\d.]/g, ""));
   if (!isNaN(cleanNum)) {
+    if (cleanNum === 0) {
+      return `<span class="status success" style="background: rgba(52, 199, 89, 0.1); color: #34c759; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px;">رایگان</span>`;
+    }
     return cleanNum.toLocaleString() + " تومان";
   }
-  return String(price || "۰ تومان");
+  return String(price || "رایگان");
 }
 
 function renderDashboardProducts() {
@@ -468,6 +474,19 @@ function populateProductContentDropdown() {
 function openModal(modalId) {
   if (modalId === "addProductModal") {
     populateProductContentDropdown();
+    
+    // Reset product access type toggles on modal open
+    const premiumRadio = document.getElementById("accessTypePremium");
+    if (premiumRadio) premiumRadio.checked = true;
+    
+    const priceContainer = document.getElementById("prodPriceContainer");
+    if (priceContainer) priceContainer.style.display = "block";
+    
+    const priceInput = document.getElementById("newProdPrice");
+    if (priceInput) {
+      priceInput.required = true;
+      priceInput.value = "";
+    }
   }
   document.getElementById(modalId).classList.add("active");
   document.getElementById("overlay").classList.add("active");
@@ -479,6 +498,30 @@ function closeModal(modalId) {
 }
 
 function initModals() {
+  // Bind radio button listeners for product access type
+  const accessTypePremium = document.getElementById("accessTypePremium");
+  const accessTypeFree = document.getElementById("accessTypeFree");
+  const prodPriceContainer = document.getElementById("prodPriceContainer");
+  const newProdPrice = document.getElementById("newProdPrice");
+
+  if (accessTypePremium && accessTypeFree && prodPriceContainer) {
+    accessTypePremium.addEventListener("change", () => {
+      if (accessTypePremium.checked) {
+        prodPriceContainer.style.display = "block";
+        if (newProdPrice) newProdPrice.required = true;
+      }
+    });
+    accessTypeFree.addEventListener("change", () => {
+      if (accessTypeFree.checked) {
+        prodPriceContainer.style.display = "none";
+        if (newProdPrice) {
+          newProdPrice.required = false;
+          newProdPrice.value = "0";
+        }
+      }
+    });
+  }
+
   // Add Product Form
   const addProductForm = document.getElementById("addProductForm");
   if (addProductForm) {
@@ -487,7 +530,8 @@ function initModals() {
       const contentId = document.getElementById("newProdContentId").value;
       const name = document.getElementById("newProdName").value.trim();
       const category = document.getElementById("newProdCat").value;
-      const price = parseFloat(document.getElementById("newProdPrice").value);
+      const isFree = document.getElementById("accessTypeFree") ? document.getElementById("accessTypeFree").checked : false;
+      const price = isFree ? 0 : parseFloat(document.getElementById("newProdPrice").value || "0");
       const fileSize = document.getElementById("newProdSize").value.trim();
       const fileUrl = document.getElementById("newProdFileUrl").value.trim();
 
