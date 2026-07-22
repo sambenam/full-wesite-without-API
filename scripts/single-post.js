@@ -57,9 +57,9 @@ function loadSinglePost() {
         }
       } catch (e) {}
 
-      // Flags for display
-      const showLockedVideo = videoProduct && !isVideoPurchased;
-      const showLockedFiles = filesProduct && !isFilesPurchased;
+      // Flags for display (Only lock if product price is greater than 0)
+      const showLockedVideo = videoProduct && Number(videoProduct.price) > 0 && !isVideoPurchased;
+      const showLockedFiles = filesProduct && Number(filesProduct.price) > 0 && !isFilesPurchased;
 
       // 1. Render Video content or Locked Video Box
       if (showLockedVideo) {

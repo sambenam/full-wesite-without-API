@@ -1236,7 +1236,7 @@ function saveEditedContent() {
   const videoProductId = contentEditorState.itemId + "-video";
   const existingVideoIdx = products.findIndex(function(p) { return String(p.id) === String(videoProductId); });
 
-  if (hasVideo && videoIsPaid && videoPrice > 0) {
+  if (hasVideo) {
     const updatedVideoProd = {
       id: videoProductId,
       name: "تماشای آنلاین ویدیو: " + finalTitle,
@@ -1252,7 +1252,7 @@ function saveEditedContent() {
       products.unshift(updatedVideoProd);
     }
   } else {
-    // Delete video product if not paid or no video
+    // Delete video product if no video
     products = products.filter(function(p) { return String(p.id) !== String(videoProductId); });
   }
 
@@ -1260,7 +1260,7 @@ function saveEditedContent() {
   const filesProductId = contentEditorState.itemId;
   const existingFilesIdx = products.findIndex(function(p) { return String(p.id) === String(filesProductId); });
 
-  if (hasDownloads && filesIsPaid && filesPrice > 0) {
+  if (hasDownloads) {
     const firstFile = downloads[0];
     const updatedFilesProd = {
       id: filesProductId,
@@ -1277,7 +1277,7 @@ function saveEditedContent() {
       products.unshift(updatedFilesProd);
     }
   } else {
-    // Delete files product if not paid or no downloads
+    // Delete files product if no downloads
     products = products.filter(function(p) { return String(p.id) !== String(filesProductId); });
   }
 
