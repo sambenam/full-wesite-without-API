@@ -3,6 +3,11 @@
  * Fully interactive views, CRUD operations, search filters, notifications, and modals.
  */
 
+function toPersianDigits(value) {
+  const charMap = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
+  return String(value || "").replace(/[0-9]/g, (match) => charMap[parseInt(match)]);
+}
+
 function loadDynamicProducts() {
   try {
     const raw = localStorage.getItem("irHesabdarProducts");
@@ -190,12 +195,12 @@ function updateDashboardMetrics() {
       }, 0);
 
     if (revenueEl) {
-      revenueEl.textContent = totalRev.toLocaleString("fa-IR") + " تومان";
+      revenueEl.textContent = toPersianDigits(totalRev.toLocaleString()) + " تومان";
     }
 
     // 2. Calculate Total Orders Count
     if (ordersEl) {
-      ordersEl.textContent = appState.orders.length.toLocaleString("fa-IR");
+      ordersEl.textContent = toPersianDigits(appState.orders.length.toLocaleString());
     }
   }
 }
@@ -216,7 +221,7 @@ function updateOrdersNotifications() {
 
   const unreadCount = currentCount - lastSeenCount;
   if (unreadCount > 0) {
-    badge.textContent = unreadCount.toLocaleString("fa-IR");
+    badge.textContent = toPersianDigits(unreadCount.toLocaleString());
     badge.style.display = "inline-flex";
   } else {
     badge.style.display = "none";
@@ -368,16 +373,16 @@ function formatProductPrice(price) {
     if (price === 0) {
       return `<span class="status success" style="background: rgba(52, 199, 89, 0.1); color: #34c759; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px;">رایگان</span>`;
     }
-    return price.toLocaleString() + " تومان";
+    return toPersianDigits(price.toLocaleString()) + " تومان";
   }
   const cleanNum = parseFloat(String(price || "").replace(/[^\d.]/g, ""));
   if (!isNaN(cleanNum)) {
     if (cleanNum === 0) {
       return `<span class="status success" style="background: rgba(52, 199, 89, 0.1); color: #34c759; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px;">رایگان</span>`;
     }
-    return cleanNum.toLocaleString() + " تومان";
+    return toPersianDigits(cleanNum.toLocaleString()) + " تومان";
   }
-  return String(price || "رایگان");
+  return toPersianDigits(String(price || "رایگان"));
 }
 
 function renderDashboardProducts() {
@@ -472,14 +477,20 @@ function downloadOrdersReport() {
     const email = o.buyerEmail || "sam@example.com";
     const statusText = o.status === "success" ? "تکمیل شده" : "ناموفق";
     
-    csvContent += `"${o.id}","${o.customer}","${phone}","${email}","${o.product}","${o.amount}","${o.date}","${statusText}"\n`;
+    // Convert to Farsi digits for report
+    const fId = toPersianDigits(o.id);
+    const fPhone = toPersianDigits(phone);
+    const fAmount = toPersianDigits(o.amount);
+    const fDate = toPersianDigits(o.date);
+    
+    csvContent += `"${fId}","${o.customer}","${fPhone}","${email}","${o.product}","${fAmount}","${fDate}","${statusText}"\n`;
   });
 
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);
-  link.setAttribute("download", `hesabyar_orders_report_${Date.now()}.csv`);
+  link.setAttribute("download", `report_orders_${toPersianDigits(Date.now())}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -502,13 +513,19 @@ function downloadSingleOrderInvoice(orderId) {
   const email = order.buyerEmail || "sam@example.com";
   const statusText = order.status === "success" ? "موفق (تکمیل شده)" : "ناموفق";
   
-  csvContent += `"${order.id}","${order.customer}","${phone}","${email}","${order.product}","${order.amount}","${order.date}","${statusText}"\n`;
+  // Convert to Farsi digits for invoice
+  const fId = toPersianDigits(order.id);
+  const fPhone = toPersianDigits(phone);
+  const fAmount = toPersianDigits(order.amount);
+  const fDate = toPersianDigits(order.date);
+
+  csvContent += `"${fId}","${order.customer}","${fPhone}","${email}","${order.product}","${fAmount}","${fDate}","${statusText}"\n`;
 
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);
-  link.setAttribute("download", `invoice_order_${order.id.replace("#", "")}.csv`);
+  link.setAttribute("download", `invoice_order_${toPersianDigits(order.id.replace("#", ""))}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -522,14 +539,14 @@ function openOrderDetailModal(orderId) {
     return;
   }
 
-  // Populate modal fields
-  document.getElementById("detailOrderNum").textContent = "شماره سفارش: " + order.id;
+  // Populate modal fields with gorgeous Persian digits
+  document.getElementById("detailOrderNum").textContent = "شماره سفارش: " + toPersianDigits(order.id);
   document.getElementById("detailOrderCustomer").textContent = order.customer || "نامشخص";
-  document.getElementById("detailOrderPhone").textContent = order.buyerPhone || "۰۹۱۲۳۴۵۶۷۸۹ (پیش‌فرض)";
-  document.getElementById("detailOrderEmail").textContent = order.buyerEmail || "sam@example.com (پیش‌فرض)";
+  document.getElementById("detailOrderPhone").textContent = toPersianDigits(order.buyerPhone || "۰۹۱۲۳۴۵۶۷۸۹");
+  document.getElementById("detailOrderEmail").textContent = order.buyerEmail || "sam@example.com";
   document.getElementById("detailOrderProduct").textContent = order.product || "محصول آموزشی";
-  document.getElementById("detailOrderAmount").textContent = order.amount || "۰ تومان";
-  document.getElementById("detailOrderDate").textContent = order.date || "---";
+  document.getElementById("detailOrderAmount").textContent = toPersianDigits(order.amount || "۰ تومان");
+  document.getElementById("detailOrderDate").textContent = toPersianDigits(order.date || "---");
 
   // Try to find the download link for this product
   let fileUrl = "";
@@ -573,17 +590,17 @@ function renderOrdersTable() {
     .map(
       (order) => `
         <tr>
-            <td>${order.id}</td>
+            <td>${toPersianDigits(order.id)}</td>
             <td>${order.customer}</td>
             <td>${order.product}</td>
-            <td>${order.amount}</td>
-            <td>${order.date}</td>
+            <td style="font-weight: bold; color: var(--success);">${toPersianDigits(order.amount)}</td>
+            <td>${toPersianDigits(order.date)}</td>
             <td><span class="status ${order.status}">${getStatusText(order.status)}</span></td>
             <td>
                 <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px; cursor: pointer;" onclick="openOrderDetailModal('${order.id}')">بررسی جزئیات</button>
             </td>
         </tr>
-    `,
+      `
     )
     .join("");
 }
