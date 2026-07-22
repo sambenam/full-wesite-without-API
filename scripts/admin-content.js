@@ -128,44 +128,7 @@ function initContentAdmin() {
   if (addNewBtn) {
     addNewBtn.addEventListener("click", function () {
       populateCategorySelect();
-      
-      const premiumRadio = document.getElementById("newItemAccessPremium");
-      if (premiumRadio) premiumRadio.checked = true;
-      
-      const priceContainer = document.getElementById("newItemPriceContainer");
-      if (priceContainer) priceContainer.style.display = "block";
-      
-      const priceInput = document.getElementById("newItemPrice");
-      if (priceInput) {
-        priceInput.value = "50000";
-        priceInput.required = true;
-      }
-
       openModal("addNewItemModal");
-    });
-  }
-
-  // Toggle price field in Add New Item Modal
-  const newItemAccessPremium = document.getElementById("newItemAccessPremium");
-  const newItemAccessFree = document.getElementById("newItemAccessFree");
-  const newItemPriceContainer = document.getElementById("newItemPriceContainer");
-  const newItemPriceInput = document.getElementById("newItemPrice");
-
-  if (newItemAccessPremium && newItemAccessFree && newItemPriceContainer) {
-    newItemAccessPremium.addEventListener("change", function() {
-      if (newItemAccessPremium.checked) {
-        newItemPriceContainer.style.display = "block";
-        if (newItemPriceInput) newItemPriceInput.required = true;
-      }
-    });
-    newItemAccessFree.addEventListener("change", function() {
-      if (newItemAccessFree.checked) {
-        newItemPriceContainer.style.display = "none";
-        if (newItemPriceInput) {
-          newItemPriceInput.required = false;
-          newItemPriceInput.value = "0";
-        }
-      }
     });
   }
 
@@ -192,10 +155,6 @@ function initContentAdmin() {
         return;
       }
 
-      // Check if newly created item is Paid/Premium
-      const isPaid = document.getElementById("newItemAccessPremium") ? document.getElementById("newItemAccessPremium").checked : false;
-      const price = isPaid ? parseFloat(document.getElementById("newItemPrice").value || "0") : 0;
-
       const newItem = {
         id: id,
         title: title,
@@ -211,42 +170,6 @@ function initContentAdmin() {
 
       if (typeof saveAddedItem === "function") {
         saveAddedItem(newItem);
-      }
-
-      // AUTOMATICALLY SYNC NEW PRODUCT IF PAID
-      if (isPaid && price > 0) {
-        const productsRaw = localStorage.getItem("irHesabdarProducts");
-        let products = [];
-        if (productsRaw) {
-          try {
-            products = JSON.parse(productsRaw);
-          } catch(e) {}
-        }
-        if (!Array.isArray(products)) products = [];
-
-        const existingIdx = products.findIndex(p => String(p.id) === String(id));
-        const newProduct = {
-          id: id,
-          name: "دانلود فایل‌های دوره: " + title,
-          category: "pdf",
-          price: price,
-          fileUrl: "",
-          fileSize: "",
-          img: image
-        };
-
-        if (existingIdx > -1) {
-          products[existingIdx] = newProduct;
-        } else {
-          products.unshift(newProduct);
-        }
-        localStorage.setItem("irHesabdarProducts", JSON.stringify(products));
-
-        if (typeof appState !== "undefined") {
-          appState.products = products;
-          if (typeof renderProductsTable === "function") renderProductsTable();
-          if (typeof renderDashboardProducts === "function") renderDashboardProducts();
-        }
       }
 
       if (
@@ -284,24 +207,47 @@ function initContentAdmin() {
     videoEnabled.addEventListener("change", toggleVideoFields);
   }
 
-  // Toggle price visibility in content editor modal
-  const contentIsPaid = document.getElementById("contentIsPaid");
-  const contentPriceContainer = document.getElementById("contentPriceContainer");
-  const contentItemPrice = document.getElementById("contentItemPrice");
+  // Toggle price visibility for Video in content editor modal
+  const contentVideoIsPaid = document.getElementById("contentVideoIsPaid");
+  const contentVideoPriceContainer = document.getElementById("contentVideoPriceContainer");
+  const contentVideoPrice = document.getElementById("contentVideoPrice");
 
-  if (contentIsPaid && contentPriceContainer) {
-    contentIsPaid.addEventListener("change", function () {
-      if (contentIsPaid.checked) {
-        contentPriceContainer.style.display = "flex";
-        if (contentItemPrice) {
-          contentItemPrice.required = true;
-          contentItemPrice.value = "50000";
+  if (contentVideoIsPaid && contentVideoPriceContainer) {
+    contentVideoIsPaid.addEventListener("change", function () {
+      if (contentVideoIsPaid.checked) {
+        contentVideoPriceContainer.style.display = "flex";
+        if (contentVideoPrice) {
+          contentVideoPrice.required = true;
+          contentVideoPrice.value = "50000";
         }
       } else {
-        contentPriceContainer.style.display = "none";
-        if (contentItemPrice) {
-          contentItemPrice.required = false;
-          contentItemPrice.value = "0";
+        contentVideoPriceContainer.style.display = "none";
+        if (contentVideoPrice) {
+          contentVideoPrice.required = false;
+          contentVideoPrice.value = "0";
+        }
+      }
+    });
+  }
+
+  // Toggle price visibility for Files/Downloads in content editor modal
+  const contentFilesIsPaid = document.getElementById("contentFilesIsPaid");
+  const contentFilesPriceContainer = document.getElementById("contentFilesPriceContainer");
+  const contentFilesPrice = document.getElementById("contentFilesPrice");
+
+  if (contentFilesIsPaid && contentFilesPriceContainer) {
+    contentFilesIsPaid.addEventListener("change", function () {
+      if (contentFilesIsPaid.checked) {
+        contentFilesPriceContainer.style.display = "flex";
+        if (contentFilesPrice) {
+          contentFilesPrice.required = true;
+          contentFilesPrice.value = "50000";
+        }
+      } else {
+        contentFilesPriceContainer.style.display = "none";
+        if (contentFilesPrice) {
+          contentFilesPrice.required = false;
+          contentFilesPrice.value = "0";
         }
       }
     });
@@ -646,36 +592,61 @@ function openContentEditor(itemId) {
   renderDownloadsEditor();
   toggleVideoFields();
 
-  // Load associated product price to set isPaid checkbox and price input
+  // Load associated product prices (separate for Video and Files/Downloads)
   const productsRaw = localStorage.getItem("irHesabdarProducts");
-  let productPrice = 0;
+  let videoProductPrice = 0;
+  let filesProductPrice = 0;
   if (productsRaw) {
     try {
       const prods = JSON.parse(productsRaw);
       if (Array.isArray(prods)) {
-        const associatedProd = prods.find(function(p) { return String(p.id) === String(itemId); });
-        if (associatedProd) {
-          productPrice = Number(associatedProd.price) || 0;
+        const videoProd = prods.find(function(p) { return String(p.id) === String(itemId) + "-video"; });
+        if (videoProd) {
+          videoProductPrice = Number(videoProd.price) || 0;
+        }
+        const filesProd = prods.find(function(p) { return String(p.id) === String(itemId); });
+        if (filesProd) {
+          filesProductPrice = Number(filesProd.price) || 0;
         }
       }
     } catch(e) {}
   }
 
-  const contentIsPaidInput = document.getElementById("contentIsPaid");
-  const contentPriceContainerDiv = document.getElementById("contentPriceContainer");
-  const contentItemPriceInput = document.getElementById("contentItemPrice");
+  // Setup Video Lock Initial State
+  const cVideoIsPaid = document.getElementById("contentVideoIsPaid");
+  const cVideoPriceContainer = document.getElementById("contentVideoPriceContainer");
+  const cVideoPrice = document.getElementById("contentVideoPrice");
 
-  if (contentIsPaidInput && contentPriceContainerDiv && contentItemPriceInput) {
-    if (productPrice > 0) {
-      contentIsPaidInput.checked = true;
-      contentPriceContainerDiv.style.display = "flex";
-      contentItemPriceInput.value = productPrice;
-      contentItemPriceInput.required = true;
+  if (cVideoIsPaid && cVideoPriceContainer && cVideoPrice) {
+    if (videoProductPrice > 0) {
+      cVideoIsPaid.checked = true;
+      cVideoPriceContainer.style.display = "flex";
+      cVideoPrice.value = videoProductPrice;
+      cVideoPrice.required = true;
     } else {
-      contentIsPaidInput.checked = false;
-      contentPriceContainerDiv.style.display = "none";
-      contentItemPriceInput.value = "0";
-      contentItemPriceInput.required = false;
+      cVideoIsPaid.checked = false;
+      cVideoPriceContainer.style.display = "none";
+      cVideoPrice.value = "0";
+      cVideoPrice.required = false;
+    }
+  }
+
+  // Setup Files Lock Initial State
+  const cFilesIsPaid = document.getElementById("contentFilesIsPaid");
+  const cFilesPriceContainer = document.getElementById("contentFilesPriceContainer");
+  const cFilesPrice = document.getElementById("contentFilesPrice");
+
+  if (cFilesIsPaid && cFilesPriceContainer && cFilesPrice) {
+    if (filesProductPrice > 0) {
+      cFilesIsPaid.checked = true;
+      cFilesPriceContainer.style.display = "flex";
+      cFilesPrice.value = filesProductPrice;
+      cFilesPrice.required = true;
+    } else {
+      cFilesIsPaid.checked = false;
+      cFilesPriceContainer.style.display = "none";
+      cFilesPrice.value = "0";
+      cFilesPrice.required = false;
     }
   }
 
@@ -1239,97 +1210,86 @@ function saveEditedContent() {
     applyContentOverrides(siteData);
   }
 
-  // AUTOMATIC REVERSE SYNC: Content to Product
+  // AUTOMATIC REVERSE SYNC: Content to Product (Separate for Video and Files/Downloads)
   const hasDownloads = downloads && downloads.length > 0;
   const hasVideo = content.video && content.video.enabled && content.video.url;
 
-  const isPaid = document.getElementById("contentIsPaid") ? document.getElementById("contentIsPaid").checked : false;
-  const contentPrice = isPaid ? parseFloat(document.getElementById("contentItemPrice").value || "0") : 0;
+  const videoIsPaid = document.getElementById("contentVideoIsPaid") ? document.getElementById("contentVideoIsPaid").checked : false;
+  const videoPrice = videoIsPaid ? parseFloat(document.getElementById("contentVideoPrice").value || "0") : 0;
 
-  if (hasDownloads || hasVideo) {
-    const productsRaw = localStorage.getItem("irHesabdarProducts");
-    let products = [];
-    if (productsRaw) {
-      try {
-        products = JSON.parse(productsRaw);
-      } catch (e) {}
-    }
-    if (!Array.isArray(products)) products = [];
+  const filesIsPaid = document.getElementById("contentFilesIsPaid") ? document.getElementById("contentFilesIsPaid").checked : false;
+  const filesPrice = filesIsPaid ? parseFloat(document.getElementById("contentFilesPrice").value || "0") : 0;
 
-    const existingIdx = products.findIndex(function(p) { return String(p.id) === String(contentEditorState.itemId); });
-    const finalTitle = title || (found ? found.item.title : "") || (hasDownloads ? downloads[0].title : content.video.title) || "محصول آموزشی";
-    const finalImage = image || (found ? found.item.image : "") || "../images/ravin.png";
-    
-    const finalPrice = contentPrice;
+  const productsRaw = localStorage.getItem("irHesabdarProducts");
+  let products = [];
+  if (productsRaw) {
+    try {
+      products = JSON.parse(productsRaw);
+    } catch (e) {}
+  }
+  if (!Array.isArray(products)) products = [];
 
-    let updatedProd = null;
-    if (hasDownloads) {
-      const firstFile = downloads[0];
-      updatedProd = {
-        id: contentEditorState.itemId,
-        name: finalTitle,
-        category: firstFile.type || "pdf",
-        price: finalPrice,
-        fileUrl: firstFile.url,
-        fileSize: firstFile.size || "10MB",
-        img: finalImage
-      };
-    } else if (hasVideo) {
-      updatedProd = {
-        id: contentEditorState.itemId,
-        name: finalTitle,
-        category: "mp4",
-        price: finalPrice,
-        fileUrl: content.video.url,
-        fileSize: "15MB",
-        img: finalImage
-      };
-    }
+  const finalTitle = title || (found ? found.item.title : "") || "محصول آموزشی";
+  const finalImage = image || (found ? found.item.image : "") || "../images/ravin.png";
 
-    if (updatedProd) {
-      if (existingIdx > -1) {
-        products[existingIdx] = updatedProd;
-      } else {
-        products.unshift(updatedProd);
-      }
+  // 1. Sync Video Product (ID: [itemId]-video)
+  const videoProductId = contentEditorState.itemId + "-video";
+  const existingVideoIdx = products.findIndex(function(p) { return String(p.id) === String(videoProductId); });
 
-      localStorage.setItem("irHesabdarProducts", JSON.stringify(products));
-
-      if (typeof appState !== "undefined") {
-        appState.products = products;
-        if (typeof renderProductsTable === "function") {
-          renderProductsTable();
-        }
-        if (typeof renderDashboardProducts === "function") {
-          renderDashboardProducts();
-        }
-      }
+  if (hasVideo && videoIsPaid && videoPrice > 0) {
+    const updatedVideoProd = {
+      id: videoProductId,
+      name: "تماشای آنلاین ویدیو: " + finalTitle,
+      category: "mp4",
+      price: videoPrice,
+      fileUrl: content.video.url,
+      fileSize: "15MB",
+      img: finalImage
+    };
+    if (existingVideoIdx > -1) {
+      products[existingVideoIdx] = updatedVideoProd;
+    } else {
+      products.unshift(updatedVideoProd);
     }
   } else {
-    // If the content item now has NO downloads and NO video, we automatically DELETE the product!
-    const productsRaw = localStorage.getItem("irHesabdarProducts");
-    if (productsRaw) {
-      try {
-        let products = JSON.parse(productsRaw);
-        if (Array.isArray(products)) {
-          const originalLength = products.length;
-          products = products.filter(function(p) { return String(p.id) !== String(contentEditorState.itemId); });
-          if (products.length !== originalLength) {
-            localStorage.setItem("irHesabdarProducts", JSON.stringify(products));
-            if (typeof appState !== "undefined") {
-              appState.products = products;
-              if (typeof renderProductsTable === "function") {
-                renderProductsTable();
-              }
-              if (typeof renderDashboardProducts === "function") {
-                renderDashboardProducts();
-              }
-            }
-          }
-        }
-      } catch (e) {
-        console.warn("admin-content: error syncing product deletion", e);
-      }
+    // Delete video product if not paid or no video
+    products = products.filter(function(p) { return String(p.id) !== String(videoProductId); });
+  }
+
+  // 2. Sync Files/Downloads Product (ID: [itemId])
+  const filesProductId = contentEditorState.itemId;
+  const existingFilesIdx = products.findIndex(function(p) { return String(p.id) === String(filesProductId); });
+
+  if (hasDownloads && filesIsPaid && filesPrice > 0) {
+    const firstFile = downloads[0];
+    const updatedFilesProd = {
+      id: filesProductId,
+      name: "دانلود فایل‌های دوره: " + finalTitle,
+      category: firstFile.type || "pdf",
+      price: filesPrice,
+      fileUrl: firstFile.url,
+      fileSize: firstFile.size || "10MB",
+      img: finalImage
+    };
+    if (existingFilesIdx > -1) {
+      products[existingFilesIdx] = updatedFilesProd;
+    } else {
+      products.unshift(updatedFilesProd);
+    }
+  } else {
+    // Delete files product if not paid or no downloads
+    products = products.filter(function(p) { return String(p.id) !== String(filesProductId); });
+  }
+
+  localStorage.setItem("irHesabdarProducts", JSON.stringify(products));
+
+  if (typeof appState !== "undefined") {
+    appState.products = products;
+    if (typeof renderProductsTable === "function") {
+      renderProductsTable();
+    }
+    if (typeof renderDashboardProducts === "function") {
+      renderDashboardProducts();
     }
   }
 

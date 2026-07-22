@@ -1136,12 +1136,12 @@
           <div class="content-editor_section" style="background: rgba(255, 149, 0, 0.05); border: 1px solid rgba(255, 149, 0, 0.15); border-radius: 12px; padding: 15px; margin-bottom: 1.5rem; text-align: right;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; direction: rtl;">
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: bold; color: #fff; user-select: none;">
-                <input type="checkbox" id="contentIsPaid" style="width: 18px; height: 18px; cursor: pointer;" />
-                <span>🔒 نیاز به خرید و قفل‌گذاری؟ (نقدی و پولی)</span>
+                <input type="checkbox" id="contentVideoIsPaid" style="width: 18px; height: 18px; cursor: pointer;" />
+                <span>🔒 نیاز به خرید و قفل‌گذاری ویدیو؟ (نقدی و پولی)</span>
               </label>
-              <div id="contentPriceContainer" style="display: none; align-items: center; gap: 8px; direction: rtl;">
-                <label style="font-size: 13px; color: var(--text-secondary);">قیمت (تومان):</label>
-                <input type="number" id="contentItemPrice" class="form-control" placeholder="مثال: 50000" style="max-width: 140px; padding: 8px;" />
+              <div id="contentVideoPriceContainer" style="display: none; align-items: center; gap: 8px; direction: rtl;">
+                <label style="font-size: 13px; color: var(--text-secondary);">قیمت ویدیو (تومان):</label>
+                <input type="number" id="contentVideoPrice" class="form-control" placeholder="مثال: 50000" style="max-width: 140px; padding: 8px;" />
               </div>
             </div>
           </div>
@@ -1157,6 +1157,20 @@
               id="contentDownloadsEditor"
               class="content-downloads-editor"
             ></div>
+
+            <!-- New Files Gold Box -->
+            <div class="content-editor_section" style="background: rgba(255, 149, 0, 0.05); border: 1px solid rgba(255, 149, 0, 0.15); border-radius: 12px; padding: 15px; margin-top: 1.5rem; text-align: right;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; direction: rtl;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: bold; color: #fff; user-select: none;">
+                  <input type="checkbox" id="contentFilesIsPaid" style="width: 18px; height: 18px; cursor: pointer;" />
+                  <span>🔒 نیاز به خرید و قفل‌گذاری فایل‌های دانلود؟ (نقدی و پولی)</span>
+                </label>
+                <div id="contentFilesPriceContainer" style="display: none; align-items: center; gap: 8px; direction: rtl;">
+                  <label style="font-size: 13px; color: var(--text-secondary);">قیمت فایل‌ها (تومان):</label>
+                  <input type="number" id="contentFilesPrice" class="form-control" placeholder="مثال: 50000" style="max-width: 140px; padding: 8px;" />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="modal-footer">
@@ -1246,29 +1260,6 @@
               rows="3"
               placeholder="توضیح کوتاه برای نمایش در کارت‌ها"
             ></textarea>
-          </div>
-
-          <div class="form-group" style="margin-bottom: 1rem; text-align: right;">
-            <label style="display: block; margin-bottom: 6px; font-weight: bold; color: var(--text-primary);">نوع دسترسی به آیتم جدید</label>
-            <div style="display: flex; gap: 1.5rem; margin-top: 6px;">
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-primary); font-weight: 500; user-select: none;">
-                <input type="radio" name="newItemAccessType" value="premium" checked id="newItemAccessPremium" /> 🔒 نقدی و پولی
-              </label>
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-primary); font-weight: 500; user-select: none;">
-                <input type="radio" name="newItemAccessType" value="free" id="newItemAccessFree" /> 🟢 کاملاً رایگان
-              </label>
-            </div>
-          </div>
-
-          <div class="form-group" id="newItemPriceContainer" style="margin-bottom: 1rem; text-align: right;">
-            <label>قیمت آیتم جدید (تومان)</label>
-            <input
-              type="number"
-              id="newItemPrice"
-              class="form-control"
-              placeholder="مثال: 50000"
-              value="50000"
-            />
           </div>
 
           <div class="modal-footer">

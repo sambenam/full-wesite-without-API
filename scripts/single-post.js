@@ -31,79 +31,126 @@ function loadSinglePost() {
       postImage.src = post.image;
       postImage.alt = post.title;
 
-      // CHECK FOR ASSOCIATED DIGITAL PRODUCT
+      // CHECK FOR ASSOCIATED DIGITAL PRODUCTS (VIDEO and FILES separately)
       const productsRaw = localStorage.getItem("irHesabdarProducts");
-      let product = null;
+      let videoProduct = null;
+      let filesProduct = null;
       if (productsRaw) {
         try {
           const prods = JSON.parse(productsRaw);
           if (Array.isArray(prods)) {
-            product = prods.find(function(p) { return String(p.id) === String(postId); });
+            videoProduct = prods.find(function(p) { return String(p.id) === String(postId) + "-video"; });
+            filesProduct = prods.find(function(p) { return String(p.id) === String(postId); });
           }
         } catch (e) {}
       }
 
       // CHECK IF ALREADY PURCHASED
-      let isPurchased = false;
+      let isVideoPurchased = false;
+      let isFilesPurchased = false;
       try {
         const purchasedRaw = localStorage.getItem("irHesabdarPurchasedProducts");
         const purchased = purchasedRaw ? JSON.parse(purchasedRaw) : [];
         if (Array.isArray(purchased)) {
-          isPurchased = purchased.indexOf(postId) !== -1;
+          isVideoPurchased = purchased.indexOf(postId + "-video") !== -1;
+          isFilesPurchased = purchased.indexOf(postId) !== -1;
         }
       } catch (e) {}
 
-      if (product && !isPurchased) {
-        // PAID PRODUCT & NOT YET BOUGHT: Render Locked Content Box
-        if (postDownloads) {
-          postDownloads.hidden = false;
-          postDownloads.innerHTML = `
-            <div class="paid-product-box" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 2.5rem; text-align: center; margin-top: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.15); backdrop-filter: blur(10px);">
-              <i class="fa-solid fa-lock" style="font-size: 3rem; color: #ff9500; margin-bottom: 1rem;"></i>
-              <h3 style="margin-bottom: 0.5rem; color: #fff; font-size: 1.25rem;">این فایل آموزشی نقدی و پولی می‌باشد</h3>
-              <p style="color: #86868b; margin-bottom: 1.5rem; font-size: 14px;">برای دسترسی به لینک دانلود اصلی، تماشای ویدیو و استفاده آفلاین، لطفا ابتدا این دوره را خریداری کنید.</p>
-              <div style="font-size: 1.75rem; font-weight: bold; color: #34c759; margin-bottom: 1.5rem;">${Number(product.price).toLocaleString()} تومان</div>
-              <button id="buyProductBtn" class="btn-primary" style="background: #007aff; padding: 14px 28px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer; font-size: 16px; color: #fff; display: inline-flex; align-items: center; gap: 8px; transition: background 0.3s;">
-                <i class="fa-solid fa-credit-card"></i> خرید و دسترسی فوری
+      // Flags for display
+      const showLockedVideo = videoProduct && !isVideoPurchased;
+      const showLockedFiles = filesProduct && !isFilesPurchased;
+
+      // 1. Render Video content or Locked Video Box
+      if (showLockedVideo) {
+        if (postVideo) {
+          postVideo.hidden = false;
+          postVideo.innerHTML = `
+            <div class="paid-video-box" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 2rem; text-align: center; margin-bottom: 2rem; box-shadow: var(--shadow-card); backdrop-filter: blur(10px);">
+              <i class="fa-solid fa-circle-play" style="font-size: 3rem; color: #ff9500; margin-bottom: 1rem;"></i>
+              <h3 style="margin-bottom: 0.5rem; color: #fff; font-size: 1.25rem;">تماشای آنلاین ویدیوی این دوره نقدی می‌باشد</h3>
+              <p style="color: #86868b; margin-bottom: 1.5rem; font-size: 14px;">برای بازگشایی قفل ویدیو و تماشای آنلاین، لطفا هزینه آن را پرداخت کنید.</p>
+              <div style="font-size: 1.5rem; font-weight: bold; color: #34c759; margin-bottom: 1.5rem;">${Number(videoProduct.price).toLocaleString()} تومان</div>
+              <button id="buyVideoBtn" class="btn-primary" style="background: #007aff; padding: 12px 24px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; font-size: 15px; color: #fff; display: inline-flex; align-items: center; gap: 8px; transition: background 0.3s;">
+                <i class="fa-solid fa-credit-card"></i> خرید و بازگشایی ویدیو
               </button>
             </div>
           `;
           
-          document.getElementById("buyProductBtn")?.addEventListener("click", function() {
-            // Save selected product as a single item in hesabyarCart
+          document.getElementById("buyVideoBtn")?.addEventListener("click", function() {
             const cartItem = {
-              id: product.id,
-              name: product.name,
-              price: product.price,
-              img: product.img || "../images/ravin.png",
+              id: videoProduct.id,
+              name: videoProduct.name,
+              price: videoProduct.price,
+              img: videoProduct.img || "../images/ravin.png",
               qty: 1
             };
             localStorage.setItem("hesabyarCart", JSON.stringify([cartItem]));
-            
-            // Navigate to checkout
             window.location.href = "checkout.html";
           });
         }
-        if (postVideo) {
-          postVideo.hidden = true; // Hide paid video
-        }
-        
-        // Render standard post body description without files/video
+      } else {
+        // Show video normally if free or already purchased
         renderItemContent(post, {
-          body: postContent,
-          video: null,
+          body: null,
+          video: postVideo,
           downloads: null,
         });
+        
+        if (isVideoPurchased && postVideo) {
+          const badge = document.createElement("div");
+          badge.className = "alert alert-success";
+          badge.style.background = "rgba(52, 199, 89, 0.08)";
+          badge.style.color = "#34c759";
+          badge.style.border = "1px solid rgba(52, 199, 89, 0.15)";
+          badge.style.padding = "8px 12px";
+          badge.style.borderRadius = "8px";
+          badge.style.marginBottom = "1rem";
+          badge.style.textAlign = "center";
+          badge.style.fontWeight = "bold";
+          badge.style.fontSize = "13px";
+          badge.innerHTML = `<i class="fa-solid fa-circle-check" style="margin-left: 6px;"></i> قفل ویدیو باز شده است. تماشای آنلاین فعال است.`;
+          postVideo.prepend(badge);
+        }
+      }
+
+      // 2. Render Downloads or Locked Downloads Box
+      if (showLockedFiles) {
+        if (postDownloads) {
+          postDownloads.hidden = false;
+          postDownloads.innerHTML = `
+            <div class="paid-product-box" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 2.5rem; text-align: center; margin-top: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.15); backdrop-filter: blur(10px);">
+              <i class="fa-solid fa-file-shield" style="font-size: 3rem; color: #ff9500; margin-bottom: 1rem;"></i>
+              <h3 style="margin-bottom: 0.5rem; color: #fff; font-size: 1.25rem;">دانلود فایل‌های این دوره نقدی می‌باشد</h3>
+              <p style="color: #86868b; margin-bottom: 1.5rem; font-size: 14px;">برای دریافت لینک دانلود اصلی فایل‌ها، لطفا این محصول را خریداری کنید.</p>
+              <div style="font-size: 1.75rem; font-weight: bold; color: #34c759; margin-bottom: 1.5rem;">${Number(filesProduct.price).toLocaleString()} تومان</div>
+              <button id="buyFilesBtn" class="btn-primary" style="background: #007aff; padding: 14px 28px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer; font-size: 16px; color: #fff; display: inline-flex; align-items: center; gap: 8px; transition: background 0.3s;">
+                <i class="fa-solid fa-credit-card"></i> خرید و دسترسی فوری به فایل‌ها
+              </button>
+            </div>
+          `;
+          
+          document.getElementById("buyFilesBtn")?.addEventListener("click", function() {
+            const cartItem = {
+              id: filesProduct.id,
+              name: filesProduct.name,
+              price: filesProduct.price,
+              img: filesProduct.img || "../images/ravin.png",
+              qty: 1
+            };
+            localStorage.setItem("hesabyarCart", JSON.stringify([cartItem]));
+            window.location.href = "checkout.html";
+          });
+        }
       } else {
-        // FREE CONTENT OR ALREADY BOUGHT!
+        // Show downloads normally if free or already purchased
         renderItemContent(post, {
-          body: postContent,
-          video: postVideo,
+          body: null,
+          video: null,
           downloads: postDownloads,
         });
 
-        // If it was purchased, prepend a gorgeous success badge!
-        if (isPurchased && postDownloads) {
+        if (isFilesPurchased && postDownloads) {
           const badge = document.createElement("div");
           badge.className = "alert alert-success";
           badge.style.background = "rgba(52, 199, 89, 0.08)";
@@ -119,6 +166,13 @@ function loadSinglePost() {
           postDownloads.prepend(badge);
         }
       }
+
+      // Render main text description
+      renderItemContent(post, {
+        body: postContent,
+        video: null,
+        downloads: null,
+      });
 
       backLink.textContent = "بازگشت به " + category.title;
       backLink.href = "list-page.html?cat=" + slug;
