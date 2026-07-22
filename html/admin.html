@@ -543,9 +543,9 @@
                   <tr>
                     <th>تصویر</th>
                     <th>نام محصول</th>
-                    <th>دسته‌بندی</th>
+                    <th>فرمت فایل</th>
                     <th>قیمت (تومان)</th>
-                    <th>موجودی</th>
+                    <th>شناسه محتوا (ID)</th>
                     <th>عملیات</th>
                   </tr>
                 </thead>
@@ -775,47 +775,64 @@
           </button>
         </div>
         <form id="addProductForm">
-          <div class="form-group">
-            <label>نام محصول</label
-            ><input
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>شناسه محتوای متناظر در سایت (کجا نمایش داده شود؟)</label>
+            <select id="newProdContentId" class="form-control select-dropdown" required style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1);">
+              <!-- Populate dynamically with JS -->
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>نام محصول (عنوان فایل دانلودی)</label>
+            <input
               type="text"
               id="newProdName"
               class="form-control"
               required
-              placeholder="مثلا: مک‌بوک پرو M3"
+              placeholder="مثلا: دانلود فایل PDF آموزش مقدماتی"
             />
           </div>
-          <div class="form-group">
-            <label>دسته‌بندی</label>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>نوع محصول (فرمت)</label>
             <select
               id="newProdCat"
               class="form-control select-dropdown"
-              style="width: 100%"
+              style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1);"
             >
-              <option>دیجیتال و لپ‌تاپ</option>
-              <option>گوشی موبایل</option>
-              <option>لوازم جانبی</option>
-              <option>ساعت هوشمند</option>
+              <option value="pdf">فایل PDF (جزوه / کتاب)</option>
+              <option value="zip">فایل فشرده ZIP (پکیج کامل)</option>
+              <option value="mp4">ویدیوی آموزشی MP4</option>
+              <option value="xlsx">فایل اکسل Excel</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>قیمت (تومان)</label
-            ><input
-              type="text"
-              id="newProdPrice"
-              class="form-control"
-              required
-              placeholder="۷۵,۰۰۰,۰۰۰"
-            />
+          <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group" style="flex: 1;">
+              <label>قیمت (تومان)</label>
+              <input
+                type="number"
+                id="newProdPrice"
+                class="form-control"
+                required
+                placeholder="مثال: 50000"
+              />
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>حجم فایل (مثلا: 12 مگابایت)</label>
+              <input
+                type="text"
+                id="newProdSize"
+                class="form-control"
+                placeholder="مثال: 12MB"
+              />
+            </div>
           </div>
-          <div class="form-group">
-            <label>موجودی انبار</label
-            ><input
-              type="number"
-              id="newProdStock"
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>لینک دانلود فایل اصلی محصول (پس از خرید موفق)</label>
+            <input
+              type="text"
+              id="newProdFileUrl"
               class="form-control"
               required
-              value="10"
+              placeholder="https://yoursite.com/downloads/file.pdf"
             />
           </div>
           <div class="modal-footer">

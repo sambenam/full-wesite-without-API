@@ -3,6 +3,20 @@
  * Fully interactive views, CRUD operations, search filters, notifications, and modals.
  */
 
+function loadDynamicProducts() {
+  try {
+    const raw = localStorage.getItem("irHesabdarProducts");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter(p => p && p.id) : [];
+    }
+  } catch (e) {
+    console.warn("admin: error loading products", e);
+  }
+  localStorage.setItem("irHesabdarProducts", JSON.stringify([]));
+  return [];
+}
+
 let appState = {
   users: [
     {
@@ -41,40 +55,7 @@ let appState = {
       status: "فعال",
     },
   ],
-  products: [
-    {
-      id: 101,
-      name: "لپ‌تاپ ایسوس ROG",
-      category: "دیجیتال و لپ‌تاپ",
-      price: "۲۵,۰۰۰,۰۰۰ تومان",
-      stock: 14,
-      img: "https://via.placeholder.com/60",
-    },
-    {
-      id: 102,
-      name: "گوشی آیفون ۱۵ پرو",
-      category: "گوشی موبایل",
-      price: "۴۵,۰۰۰,۰۰۰ تومان",
-      stock: 8,
-      img: "https://via.placeholder.com/60",
-    },
-    {
-      id: 103,
-      name: "ایرپاد پرو اپل",
-      category: "لوازم جانبی",
-      price: "۸,۰۰۰,۰۰۰ تومان",
-      stock: 25,
-      img: "https://via.placeholder.com/60",
-    },
-    {
-      id: 104,
-      name: "اپل واچ سری ۹",
-      category: "ساعت هوشمند",
-      price: "۱۲,۰۰۰,۰۰۰ تومان",
-      stock: 11,
-      img: "https://via.placeholder.com/60",
-    },
-  ],
+  products: loadDynamicProducts(),
   orders: [
     {
       id: "#۱۲۳۴۵",
@@ -345,6 +326,17 @@ function renderDashboardOrders() {
     .join("");
 }
 
+function formatProductPrice(price) {
+  if (typeof price === "number") {
+    return price.toLocaleString() + " تومان";
+  }
+  const cleanNum = parseFloat(String(price || "").replace(/[^\d.]/g, ""));
+  if (!isNaN(cleanNum)) {
+    return cleanNum.toLocaleString() + " تومان";
+  }
+  return String(price || "۰ تومان");
+}
+
 function renderDashboardProducts() {
   const container = document.getElementById("dashboardTopProducts");
   if (!container) return;
@@ -353,13 +345,13 @@ function renderDashboardProducts() {
     .map(
       (prod) => `
         <div class="product-item">
-            <img src="${prod.img}" alt="${prod.name}">
+            <img src="${prod.img || '../images/ravin.png'}" alt="${prod.name}">
             <div class="product-info">
                 <h4>${prod.name}</h4>
-                <p>موجودی: ${prod.stock} عدد</p>
+                <p>شناسه: ${prod.id}</p>
             </div>
             <div class="product-price">
-                <span>${prod.price}</span>
+                <span style="font-weight: bold; color: var(--success);">${formatProductPrice(prod.price)}</span>
             </div>
         </div>
     `,
@@ -392,18 +384,29 @@ function renderUsersTable() {
 function renderProductsTable() {
   const tbody = document.querySelector("#productsManageTable tbody");
   if (!tbody) return;
-  tbody.innerHTML = appState.products
+  
+  const searchQuery = document.getElementById("productTableSearch") ? document.getElementById("productTableSearch").value.trim().toLowerCase() : "";
+  
+  const filteredProducts = appState.products.filter(p => {
+    return p && p.id && (
+           String(p.name || "").toLowerCase().includes(searchQuery) ||
+           String(p.id || "").toLowerCase().includes(searchQuery) ||
+           String(p.category || "").toLowerCase().includes(searchQuery)
+    );
+  });
+
+  tbody.innerHTML = filteredProducts
     .map(
       (prod) => `
         <tr>
-            <td><img src="${prod.img}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;" alt=""></td>
-            <td>${prod.name}</td>
-            <td>${prod.category}</td>
-            <td>${prod.price}</td>
-            <td>${prod.stock} عدد</td>
+            <td><img src="${prod.img || '../images/ravin.png'}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);" alt=""></td>
+            <td style="font-weight: 500;">${prod.name || "بدون نام"}</td>
+            <td><span class="status pending" style="background: rgba(0, 122, 255, 0.1); color: var(--primary); font-size: 11px; font-weight: bold; border-radius: 6px; padding: 4px 8px;">${String(prod.category || "FILE").toUpperCase()}</span></td>
+            <td style="font-weight: bold; color: var(--success);">${formatProductPrice(prod.price)}</td>
+            <td><code>${prod.id}</code></td>
             <td>
-                <button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="editProduct(${prod.id})">ویرایش</button>
-                <button class="btn-secondary" style="padding: 4px 8px; font-size: 11px; color: var(--danger); border-color: rgba(255,59,48,0.3);" onclick="deleteProduct(${prod.id})">حذف</button>
+                <button class="btn-secondary" style="padding: 4px 10px; font-size: 12px; cursor: pointer; border-radius: 6px;" onclick="editProduct('${prod.id}')">ویرایش قیمت</button>
+                <button class="btn-secondary" style="padding: 4px 10px; font-size: 12px; color: var(--danger); border-color: rgba(255,59,48,0.2); background: rgba(255,59,48,0.05); cursor: pointer; border-radius: 6px;" onclick="deleteProduct('${prod.id}')">حذف</button>
             </td>
         </tr>
     `,
@@ -459,7 +462,34 @@ function getStatusText(status) {
   return status;
 }
 
+function populateProductContentDropdown() {
+  const select = document.getElementById("newProdContentId");
+  if (!select) return;
+
+  if (typeof siteData === "undefined") {
+    select.innerHTML = '<option value="">اطلاعات لود نشده است</option>';
+    return;
+  }
+
+  let htmlOptions = "";
+  Object.keys(siteData).forEach(catKey => {
+    const category = siteData[catKey];
+    if (category && Array.isArray(category.items)) {
+      htmlOptions += `<optgroup label="${category.title}">`;
+      category.items.forEach(item => {
+        htmlOptions += `<option value="${item.id}">${item.title} (${item.id})</option>`;
+      });
+      htmlOptions += `</optgroup>`;
+    }
+  });
+
+  select.innerHTML = htmlOptions;
+}
+
 function openModal(modalId) {
+  if (modalId === "addProductModal") {
+    populateProductContentDropdown();
+  }
   document.getElementById(modalId).classList.add("active");
   document.getElementById("overlay").classList.add("active");
 }
@@ -475,25 +505,82 @@ function initModals() {
   if (addProductForm) {
     addProductForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const name = document.getElementById("newProdName").value;
+      const contentId = document.getElementById("newProdContentId").value;
+      const name = document.getElementById("newProdName").value.trim();
       const category = document.getElementById("newProdCat").value;
-      const price = document.getElementById("newProdPrice").value + " تومان";
-      const stock = parseInt(document.getElementById("newProdStock").value);
+      const price = parseFloat(document.getElementById("newProdPrice").value);
+      const fileSize = document.getElementById("newProdSize").value.trim();
+      const fileUrl = document.getElementById("newProdFileUrl").value.trim();
 
-      appState.products.unshift({
-        id: Date.now(),
-        name,
-        category,
-        price,
-        stock,
-        img: "https://via.placeholder.com/60",
-      });
+      const existingIdx = appState.products.findIndex(p => String(p.id) === String(contentId));
+      const newProduct = {
+        id: contentId,
+        name: name,
+        category: category,
+        price: price,
+        fileUrl: fileUrl,
+        fileSize: fileSize,
+        img: "../images/ravin.png"
+      };
+
+      if (existingIdx > -1) {
+        appState.products[existingIdx] = newProduct;
+      } else {
+        appState.products.unshift(newProduct);
+      }
+
+      // Save to localStorage
+      localStorage.setItem("irHesabdarProducts", JSON.stringify(appState.products));
+
+      // AUTOMATIC TWO-WAY SYNC TO SITE CONTENT:
+      if (typeof saveContentOverride === "function") {
+        const overrides = loadContentOverrides();
+        const current = overrides[contentId] || {};
+        const content = current.content || { blocks: [], downloads: [], video: null };
+        
+        if (category === "mp4") {
+          // Sync to Video field of that content item!
+          content.video = {
+            enabled: true,
+            url: fileUrl,
+            provider: "file",
+            title: name
+          };
+        } else {
+          // Sync to Downloads field of that content item!
+          if (!Array.isArray(content.downloads)) content.downloads = [];
+          const fileId = "prod-file-" + contentId;
+          const fileObj = {
+            id: fileId,
+            title: name,
+            url: fileUrl,
+            type: category,
+            size: fileSize
+          };
+
+          const existingFileIndex = content.downloads.findIndex(f => f.id === fileId);
+          if (existingFileIndex > -1) {
+            content.downloads[existingFileIndex] = fileObj;
+          } else {
+            content.downloads.push(fileObj);
+          }
+        }
+
+        saveContentOverride(contentId, {
+          content: content,
+          excerpt: current.excerpt || ""
+        });
+        
+        if (typeof applyContentOverrides === "function" && typeof siteData !== "undefined") {
+          applyContentOverrides(siteData);
+        }
+      }
 
       renderProductsTable();
       renderDashboardProducts();
       closeModal("addProductModal");
       addProductForm.reset();
-      showToast("محصول جدید با موفقیت افزوده شد", "success");
+      showToast("محصول با موفقیت ذخیره و به محتوای سایت متصل شد", "success");
     });
   }
 
@@ -564,7 +651,34 @@ function editUser(id) {
 
 function deleteProduct(id) {
   if (confirm("آیا از حذف این محصول اطمینان دارید؟")) {
-    appState.products = appState.products.filter((p) => p.id !== id);
+    appState.products = appState.products.filter((p) => p && p.id && String(p.id) !== String(id));
+    localStorage.setItem("irHesabdarProducts", JSON.stringify(appState.products));
+
+    // AUTOMATIC SYNC DELETION: Remove the file or video from Site Content overrides as well!
+    if (typeof saveContentOverride === "function") {
+      const overrides = loadContentOverrides();
+      const current = overrides[id] || {};
+      const content = current.content || { blocks: [], downloads: [], video: null };
+      
+      if (Array.isArray(content.downloads)) {
+        content.downloads = content.downloads.filter(function(f) { return f.id !== "prod-file-" + id; });
+      }
+      
+      content.video = null;
+
+      saveContentOverride(id, {
+        content: content,
+        excerpt: current.excerpt || ""
+      });
+
+      if (typeof applyContentOverrides === "function" && typeof siteData !== "undefined") {
+        applyContentOverrides(siteData);
+        if (typeof renderContentTable === "function") {
+          renderContentTable();
+        }
+      }
+    }
+
     renderProductsTable();
     renderDashboardProducts();
     showToast("محصول با موفقیت حذف شد", "error");
@@ -572,14 +686,20 @@ function deleteProduct(id) {
 }
 
 function editProduct(id) {
-  const prod = appState.products.find((p) => p.id === id);
+  const prod = appState.products.find((p) => p && p.id && String(p.id) === String(id));
   if (prod) {
-    const newPrice = prompt("ویرایش قیمت محصول:", prod.price);
-    if (newPrice) {
-      prod.price = newPrice;
-      renderProductsTable();
-      renderDashboardProducts();
-      showToast("قیمت محصول به‌روز شد", "success");
+    const newPriceRaw = prompt("ویرایش قیمت محصول (تومان):", prod.price);
+    if (newPriceRaw !== null) {
+      const newPrice = parseFloat(newPriceRaw);
+      if (!isNaN(newPrice)) {
+        prod.price = newPrice;
+        localStorage.setItem("irHesabdarProducts", JSON.stringify(appState.products));
+        renderProductsTable();
+        renderDashboardProducts();
+        showToast("قیمت محصول به‌روز شد", "success");
+      } else {
+        showToast("خطا: قیمت نامعتبر است", "error");
+      }
     }
   }
 }
