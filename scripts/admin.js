@@ -169,8 +169,59 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Update dynamic dashboard counters and notification badges on load
+  updateDashboardMetrics();
+  updateOrdersNotifications();
+
   console.log("🎉 پنل مدیریت کل با موفقیت بارگذاری و فعال شد.");
 });
+
+function updateDashboardMetrics() {
+  const revenueEl = document.getElementById("stat-revenue");
+  const ordersEl = document.getElementById("stat-orders");
+
+  if (typeof appState !== "undefined" && Array.isArray(appState.orders)) {
+    // 1. Calculate Total Revenue from successful orders
+    const totalRev = appState.orders
+      .filter(o => o.status === "success")
+      .reduce((sum, o) => {
+        const cleanNum = parseFloat(String(o.amount || "").replace(/[^\d.]/g, ""));
+        return sum + (isNaN(cleanNum) ? 0 : cleanNum);
+      }, 0);
+
+    if (revenueEl) {
+      revenueEl.textContent = totalRev.toLocaleString("fa-IR") + " تومان";
+    }
+
+    // 2. Calculate Total Orders Count
+    if (ordersEl) {
+      ordersEl.textContent = appState.orders.length.toLocaleString("fa-IR");
+    }
+  }
+}
+
+function updateOrdersNotifications() {
+  const badge = document.getElementById("orders-badge");
+  if (!badge) return;
+
+  const currentCount = Array.isArray(appState.orders) ? appState.orders.length : 0;
+  
+  let lastSeenCount = localStorage.getItem("irHesabdarLastSeenOrderCount");
+  if (lastSeenCount === null) {
+    lastSeenCount = currentCount;
+    localStorage.setItem("irHesabdarLastSeenOrderCount", lastSeenCount);
+  } else {
+    lastSeenCount = parseInt(lastSeenCount) || 0;
+  }
+
+  const unreadCount = currentCount - lastSeenCount;
+  if (unreadCount > 0) {
+    badge.textContent = unreadCount.toLocaleString("fa-IR");
+    badge.style.display = "inline-flex";
+  } else {
+    badge.style.display = "none";
+  }
+}
 
 // --- View Router & Navigation ---
 function switchView(viewName) {
@@ -194,6 +245,13 @@ function switchView(viewName) {
   document.getElementById("overlay").classList.remove("active");
 
   window.scrollTo({ top: 0, behavior: "smooth" });
+
+  // Handle Orders unread notifications
+  if (viewName === "orders") {
+    const currentCount = Array.isArray(appState.orders) ? appState.orders.length : 0;
+    localStorage.setItem("irHesabdarLastSeenOrderCount", currentCount);
+    updateOrdersNotifications();
+  }
 
   // Dynamically trigger rendering of site content if the view is active
   if (viewName === "site-content" && typeof renderContentTable === "function") {
