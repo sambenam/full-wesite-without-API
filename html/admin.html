@@ -807,10 +807,10 @@
           <div class="form-group" style="margin-bottom: 1rem;">
             <label>نوع دسترسی به محصول</label>
             <div style="display: flex; gap: 1.5rem; margin-top: 6px;">
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #f1f5f9; font-weight: 500;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-primary); font-weight: 500;">
                 <input type="radio" name="prodAccessType" value="premium" checked id="accessTypePremium" /> 🔒 نقدی و پولی
               </label>
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #f1f5f9; font-weight: 500;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-primary); font-weight: 500;">
                 <input type="radio" name="prodAccessType" value="free" id="accessTypeFree" /> 🟢 کاملاً رایگان
               </label>
             </div>
@@ -1246,6 +1246,29 @@
               rows="3"
               placeholder="توضیح کوتاه برای نمایش در کارت‌ها"
             ></textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem; text-align: right;">
+            <label style="display: block; margin-bottom: 6px; font-weight: bold; color: var(--text-primary);">نوع دسترسی به آیتم جدید</label>
+            <div style="display: flex; gap: 1.5rem; margin-top: 6px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-primary); font-weight: 500; user-select: none;">
+                <input type="radio" name="newItemAccessType" value="premium" checked id="newItemAccessPremium" /> 🔒 نقدی و پولی
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-primary); font-weight: 500; user-select: none;">
+                <input type="radio" name="newItemAccessType" value="free" id="newItemAccessFree" /> 🟢 کاملاً رایگان
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" id="newItemPriceContainer" style="margin-bottom: 1rem; text-align: right;">
+            <label>قیمت آیتم جدید (تومان)</label>
+            <input
+              type="number"
+              id="newItemPrice"
+              class="form-control"
+              placeholder="مثال: 50000"
+              value="50000"
+            />
           </div>
 
           <div class="modal-footer">

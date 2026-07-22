@@ -128,7 +128,44 @@ function initContentAdmin() {
   if (addNewBtn) {
     addNewBtn.addEventListener("click", function () {
       populateCategorySelect();
+      
+      const premiumRadio = document.getElementById("newItemAccessPremium");
+      if (premiumRadio) premiumRadio.checked = true;
+      
+      const priceContainer = document.getElementById("newItemPriceContainer");
+      if (priceContainer) priceContainer.style.display = "block";
+      
+      const priceInput = document.getElementById("newItemPrice");
+      if (priceInput) {
+        priceInput.value = "50000";
+        priceInput.required = true;
+      }
+
       openModal("addNewItemModal");
+    });
+  }
+
+  // Toggle price field in Add New Item Modal
+  const newItemAccessPremium = document.getElementById("newItemAccessPremium");
+  const newItemAccessFree = document.getElementById("newItemAccessFree");
+  const newItemPriceContainer = document.getElementById("newItemPriceContainer");
+  const newItemPriceInput = document.getElementById("newItemPrice");
+
+  if (newItemAccessPremium && newItemAccessFree && newItemPriceContainer) {
+    newItemAccessPremium.addEventListener("change", function() {
+      if (newItemAccessPremium.checked) {
+        newItemPriceContainer.style.display = "block";
+        if (newItemPriceInput) newItemPriceInput.required = true;
+      }
+    });
+    newItemAccessFree.addEventListener("change", function() {
+      if (newItemAccessFree.checked) {
+        newItemPriceContainer.style.display = "none";
+        if (newItemPriceInput) {
+          newItemPriceInput.required = false;
+          newItemPriceInput.value = "0";
+        }
+      }
     });
   }
 
@@ -155,6 +192,10 @@ function initContentAdmin() {
         return;
       }
 
+      // Check if newly created item is Paid/Premium
+      const isPaid = document.getElementById("newItemAccessPremium") ? document.getElementById("newItemAccessPremium").checked : false;
+      const price = isPaid ? parseFloat(document.getElementById("newItemPrice").value || "0") : 0;
+
       const newItem = {
         id: id,
         title: title,
@@ -170,6 +211,42 @@ function initContentAdmin() {
 
       if (typeof saveAddedItem === "function") {
         saveAddedItem(newItem);
+      }
+
+      // AUTOMATICALLY SYNC NEW PRODUCT IF PAID
+      if (isPaid && price > 0) {
+        const productsRaw = localStorage.getItem("irHesabdarProducts");
+        let products = [];
+        if (productsRaw) {
+          try {
+            products = JSON.parse(productsRaw);
+          } catch(e) {}
+        }
+        if (!Array.isArray(products)) products = [];
+
+        const existingIdx = products.findIndex(p => String(p.id) === String(id));
+        const newProduct = {
+          id: id,
+          name: "دانلود فایل‌های دوره: " + title,
+          category: "pdf",
+          price: price,
+          fileUrl: "",
+          fileSize: "",
+          img: image
+        };
+
+        if (existingIdx > -1) {
+          products[existingIdx] = newProduct;
+        } else {
+          products.unshift(newProduct);
+        }
+        localStorage.setItem("irHesabdarProducts", JSON.stringify(products));
+
+        if (typeof appState !== "undefined") {
+          appState.products = products;
+          if (typeof renderProductsTable === "function") renderProductsTable();
+          if (typeof renderDashboardProducts === "function") renderDashboardProducts();
+        }
       }
 
       if (
