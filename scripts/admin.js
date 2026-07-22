@@ -395,30 +395,6 @@ function renderDashboardProducts() {
     .join("");
 }
 
-function changePanelRole(role) {
-  currentAdminUserRole = role;
-  
-  // Dynamically update sidebar profile information depending on the role!
-  const sidebarName = document.getElementById("sidebarUserName");
-  const sidebarRole = document.getElementById("sidebarUserRole");
-  
-  if (sidebarName && sidebarRole) {
-    if (role === "manager") {
-      sidebarName.textContent = "مدیر کل سایت";
-      sidebarRole.textContent = "مدیر ارشد و مالک سیستم";
-    } else {
-      sidebarName.textContent = "ادمین نمونه";
-      sidebarRole.textContent = "ادمین سیستم (دسترسی محدود)";
-    }
-  }
-  
-  // Re-render users table and widgets
-  renderUsersTable();
-  
-  // Show toast notification
-  showToast(`نقش شما به «${role === 'manager' ? 'مدیر کل' : 'ادمین'}» تغییر یافت و دسترسی‌ها همگام شدند.`, "info");
-}
-
 function renderUsersTable() {
   const tbody = document.querySelector("#usersManageTable tbody");
   if (!tbody) return;
