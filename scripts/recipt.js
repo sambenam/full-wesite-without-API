@@ -116,7 +116,10 @@ document.addEventListener("DOMContentLoaded", () => {
           product: product.name,
           amount: finalPriceText,
           date: todayJalali,
-          status: "success"
+          status: "success",
+          buyerPhone: localStorage.getItem("irHesabdarBuyerPhone") || "۰۹۱۲۳۴۵۶۷۸۹",
+          buyerEmail: localStorage.getItem("irHesabdarBuyerEmail") || "sam@example.com",
+          productId: product.id
         };
 
         orders.unshift(newOrder);

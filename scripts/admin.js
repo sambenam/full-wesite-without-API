@@ -457,6 +457,82 @@ function renderProductsTable() {
     .join("");
 }
 
+function downloadOrdersReport() {
+  if (!appState.orders || !appState.orders.length) {
+    showToast("هیچ سفارشی برای گزارش‌گیری وجود ندارد.", "error");
+    return;
+  }
+  
+  // UTF-8 BOM to support Persian characters in Excel!
+  let csvContent = "\uFEFF"; 
+  csvContent += "شماره سفارش,نام خریدار,موبایل خریدار,ایمیل خریدار,محصول,مبلغ,تاریخ ثبت,وضعیت\n";
+  
+  appState.orders.forEach(o => {
+    const phone = o.buyerPhone || "۰۹۱۲۳۴۵۶۷۸۹";
+    const email = o.buyerEmail || "sam@example.com";
+    const statusText = o.status === "success" ? "تکمیل شده" : "ناموفق";
+    
+    csvContent += `"${o.id}","${o.customer}","${phone}","${email}","${o.product}","${o.amount}","${o.date}","${statusText}"\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `hesabyar_orders_report_${Date.now()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("گزارش اکسل سفارشات با موفقیت دانلود شد.", "success");
+}
+
+function openOrderDetailModal(orderId) {
+  const order = appState.orders.find(o => String(o.id) === String(orderId));
+  if (!order) {
+    showToast("سفارش پیدا نشد.", "error");
+    return;
+  }
+
+  // Populate modal fields
+  document.getElementById("detailOrderNum").textContent = "شماره سفارش: " + order.id;
+  document.getElementById("detailOrderCustomer").textContent = order.customer || "نامشخص";
+  document.getElementById("detailOrderPhone").textContent = order.buyerPhone || "۰۹۱۲۳۴۵۶۷۸۹ (پیش‌فرض)";
+  document.getElementById("detailOrderEmail").textContent = order.buyerEmail || "sam@example.com (پیش‌فرض)";
+  document.getElementById("detailOrderProduct").textContent = order.product || "محصول آموزشی";
+  document.getElementById("detailOrderAmount").textContent = order.amount || "۰ تومان";
+  document.getElementById("detailOrderDate").textContent = order.date || "---";
+
+  // Try to find the download link for this product
+  let fileUrl = "";
+  try {
+    const prodsRaw = localStorage.getItem("irHesabdarProducts");
+    const prods = prodsRaw ? JSON.parse(prodsRaw) : [];
+    if (Array.isArray(prods)) {
+      const match = prods.find(p => String(p.id) === String(order.productId || order.product));
+      if (match && match.fileUrl) {
+        fileUrl = match.fileUrl;
+      }
+    }
+  } catch (e) {}
+
+  const downloadContainer = document.getElementById("detailOrderDownloadContainer");
+  if (downloadContainer) {
+    if (fileUrl && fileUrl !== "#") {
+      downloadContainer.innerHTML = `
+        <a href="${fileUrl}" download class="btn-primary" style="background: #34c759; border-color: #34c759; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; cursor: pointer;">
+          <i class="fas fa-file-arrow-down"></i> دانلود فایل این سفارش برای ادمین
+        </a>
+      `;
+    } else {
+      downloadContainer.innerHTML = `
+        <p style="color: var(--text-secondary); font-size: 13px;"><i class="fas fa-info-circle"></i> این سفارش فاقد لینک دانلود مستقیم در کاتالوگ است.</p>
+      `;
+    }
+  }
+
+  openModal("orderDetailModal");
+}
+
 function renderOrdersTable() {
   const tbody = document.querySelector("#ordersFullTable tbody");
   if (!tbody) return;
@@ -471,7 +547,7 @@ function renderOrdersTable() {
             <td>${order.date}</td>
             <td><span class="status ${order.status}">${getStatusText(order.status)}</span></td>
             <td>
-                <button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="showToast('جزئیات سفارش ${order.id} باز شد', 'info')">بررسی</button>
+                <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px; cursor: pointer;" onclick="openOrderDetailModal('${order.id}')">بررسی جزئیات</button>
             </td>
         </tr>
     `,
