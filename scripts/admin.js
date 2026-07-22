@@ -512,8 +512,7 @@ function renderUsersTable() {
               <td><span class="status pending" style="background: rgba(0, 122, 255, 0.08); color: var(--primary); font-size: 11px; font-weight: bold; border-radius: 6px; padding: 4px 8px;">${user.role}</span></td>
               <td><span class="status ${user.status === "فعال" ? "success" : "cancelled"}">${user.status}</span></td>
               <td>
-                  <button class="btn-secondary" style="padding: 4px 10px; font-size: 12px; cursor: pointer; border-radius: 6px; ${actionStyle}" ${actionTitle} onclick="editUser(${user.id})">ویرایش</button>
-                  <button class="btn-secondary" style="padding: 4px 10px; font-size: 12px; color: var(--danger); border-color: rgba(255,59,48,0.2); background: rgba(255,59,48,0.05); cursor: pointer; border-radius: 6px; ${actionStyle}" ${actionTitle} onclick="deleteUser(${user.id})">حذف</button>
+                  <button class="btn-secondary" style="padding: 6px 14px; font-size: 12px; cursor: pointer; border-radius: 8px; ${actionStyle}" ${actionTitle} onclick="editUser(${user.id})">بررسی و ویرایش</button>
               </td>
           </tr>
         `;
