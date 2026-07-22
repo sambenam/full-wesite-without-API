@@ -486,6 +486,35 @@ function downloadOrdersReport() {
   showToast("گزارش اکسل سفارشات با موفقیت دانلود شد.", "success");
 }
 
+function downloadSingleOrderInvoice(orderId) {
+  const order = appState.orders.find(o => String(o.id) === String(orderId));
+  if (!order) {
+    showToast("سفارش پیدا نشد.", "error");
+    return;
+  }
+
+  // UTF-8 BOM
+  let csvContent = "\uFEFF";
+  csvContent += "فاکتور خرید محصول پلتفرم حسابیار\n\n";
+  csvContent += "شناسه سفارش,نام خریدار,موبایل خریدار,ایمیل خریدار,نام محصول,مبلغ پرداختی,تاریخ ثبت,وضعیت پرداخت\n";
+  
+  const phone = order.buyerPhone || "۰۹۱۲۳۴۵۶۷۸۹";
+  const email = order.buyerEmail || "sam@example.com";
+  const statusText = order.status === "success" ? "موفق (تکمیل شده)" : "ناموفق";
+  
+  csvContent += `"${order.id}","${order.customer}","${phone}","${email}","${order.product}","${order.amount}","${order.date}","${statusText}"\n`;
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `invoice_order_${order.id.replace("#", "")}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("فاکتور سفارش به صورت فایل اکسل دانلود شد.", "success");
+}
+
 function openOrderDetailModal(orderId) {
   const order = appState.orders.find(o => String(o.id) === String(orderId));
   if (!order) {
@@ -517,17 +546,21 @@ function openOrderDetailModal(orderId) {
 
   const downloadContainer = document.getElementById("detailOrderDownloadContainer");
   if (downloadContainer) {
+    let htmlButtons = `
+      <button type="button" class="btn-primary" onclick="downloadSingleOrderInvoice('${order.id}')" style="background: #10b981; border-color: #10b981; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; border: none;">
+        <i class="fas fa-file-excel"></i> دانلود فاکتور اکسل (CSV)
+      </button>
+    `;
+
     if (fileUrl && fileUrl !== "#") {
-      downloadContainer.innerHTML = `
-        <a href="${fileUrl}" download class="btn-primary" style="background: #34c759; border-color: #34c759; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; cursor: pointer;">
-          <i class="fas fa-file-arrow-down"></i> دانلود فایل این سفارش برای ادمین
+      htmlButtons += `
+        <a href="${fileUrl}" download class="btn-primary" style="background: #007aff; border-color: #007aff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; margin-right: 10px;">
+          <i class="fas fa-file-arrow-down"></i> دانلود فایل اصلی محصول
         </a>
       `;
-    } else {
-      downloadContainer.innerHTML = `
-        <p style="color: var(--text-secondary); font-size: 13px;"><i class="fas fa-info-circle"></i> این سفارش فاقد لینک دانلود مستقیم در کاتالوگ است.</p>
-      `;
     }
+
+    downloadContainer.innerHTML = htmlButtons;
   }
 
   openModal("orderDetailModal");
