@@ -651,20 +651,26 @@ function editUser(id) {
 
 function deleteProduct(id) {
   if (confirm("آیا از حذف این محصول اطمینان دارید؟")) {
+    const prod = appState.products.find((p) => p && p.id && String(p.id) === String(id));
     appState.products = appState.products.filter((p) => p && p.id && String(p.id) !== String(id));
     localStorage.setItem("irHesabdarProducts", JSON.stringify(appState.products));
 
-    // AUTOMATIC SYNC DELETION: Remove the file or video from Site Content overrides as well!
-    if (typeof saveContentOverride === "function") {
+    // AUTOMATIC SYNC DELETION: Remove the file or video from Site Content overrides based on URL!
+    if (prod && typeof saveContentOverride === "function") {
       const overrides = loadContentOverrides();
       const current = overrides[id] || {};
       const content = current.content || { blocks: [], downloads: [], video: null };
       
       if (Array.isArray(content.downloads)) {
-        content.downloads = content.downloads.filter(function(f) { return f.id !== "prod-file-" + id; });
+        // Safe URL matching instead of ID matching!
+        content.downloads = content.downloads.filter(function(f) { 
+          return f.url !== prod.fileUrl && f.id !== "prod-file-" + id; 
+        });
       }
       
-      content.video = null;
+      if (content.video && content.video.url === prod.fileUrl) {
+        content.video = null;
+      }
 
       saveContentOverride(id, {
         content: content,

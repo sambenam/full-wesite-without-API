@@ -1168,6 +1168,32 @@ function saveEditedContent() {
         }
       }
     }
+  } else {
+    // If the content item now has NO downloads and NO video, we automatically DELETE the product!
+    const productsRaw = localStorage.getItem("irHesabdarProducts");
+    if (productsRaw) {
+      try {
+        let products = JSON.parse(productsRaw);
+        if (Array.isArray(products)) {
+          const originalLength = products.length;
+          products = products.filter(function(p) { return String(p.id) !== String(contentEditorState.itemId); });
+          if (products.length !== originalLength) {
+            localStorage.setItem("irHesabdarProducts", JSON.stringify(products));
+            if (typeof appState !== "undefined") {
+              appState.products = products;
+              if (typeof renderProductsTable === "function") {
+                renderProductsTable();
+              }
+              if (typeof renderDashboardProducts === "function") {
+                renderDashboardProducts();
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("admin-content: error syncing product deletion", e);
+      }
+    }
   }
 
   closeModal("editContentModal");
