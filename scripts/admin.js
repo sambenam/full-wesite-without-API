@@ -42,44 +42,32 @@ function loadDynamicOrders() {
   return initialOrders;
 }
 
+const initialUsers = [
+  { id: 1, name: "سام به‌نام", contact: "sam@example.com", role: "مدیر سایت", status: "فعال" },
+  { id: 2, name: "محمد رضایی", contact: "mohammad@example.com", role: "ادمین", status: "فعال" },
+  { id: 3, name: "علی احمدی", contact: "ali@example.com", role: "کاربر عادی", status: "فعال" },
+  { id: 4, name: "سارا محمدی", contact: "sara@example.com", role: "کاربر عادی", status: "فعال" },
+  { id: 5, name: "زهرا کریمی", contact: "zahra@example.com", role: "کاربر عادی", status: "غیرفعال" }
+];
+
+function loadDynamicUsers() {
+  try {
+    const raw = localStorage.getItem("irHesabdarUsers");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : initialUsers;
+    }
+  } catch (e) {
+    console.warn("admin: error loading users", e);
+  }
+  localStorage.setItem("irHesabdarUsers", JSON.stringify(initialUsers));
+  return initialUsers;
+}
+
+let currentAdminUserRole = "manager";
+
 let appState = {
-  users: [
-    {
-      id: 1,
-      name: "علی احمدی",
-      contact: "ali@example.com",
-      role: "مشتری VIP",
-      status: "فعال",
-    },
-    {
-      id: 2,
-      name: "سارا محمدی",
-      contact: "sara@example.com",
-      role: "مشتری VIP",
-      status: "فعال",
-    },
-    {
-      id: 3,
-      name: "محمد رضایی",
-      contact: "mohammad@example.com",
-      role: "مدیر فروش",
-      status: "فعال",
-    },
-    {
-      id: 4,
-      name: "زهرا کریمی",
-      contact: "zahra@example.com",
-      role: "مشتری عادی",
-      status: "غیرفعال",
-    },
-    {
-      id: 5,
-      name: "حسین نوری",
-      contact: "hossein@example.com",
-      role: "پشتیبان",
-      status: "فعال",
-    },
-  ],
+  users: loadDynamicUsers(),
   products: loadDynamicProducts(),
   orders: loadDynamicOrders(),
   notifications: [
@@ -407,24 +395,104 @@ function renderDashboardProducts() {
     .join("");
 }
 
+function changePanelRole(role) {
+  currentAdminUserRole = role;
+  
+  // Dynamically update sidebar profile information depending on the role!
+  const sidebarName = document.getElementById("sidebarUserName");
+  const sidebarRole = document.getElementById("sidebarUserRole");
+  
+  if (sidebarName && sidebarRole) {
+    if (role === "manager") {
+      sidebarName.textContent = "مدیر کل سایت";
+      sidebarRole.textContent = "مدیر ارشد و مالک سیستم";
+    } else {
+      sidebarName.textContent = "ادمین نمونه";
+      sidebarRole.textContent = "ادمین سیستم (دسترسی محدود)";
+    }
+  }
+  
+  // Re-render users table and widgets
+  renderUsersTable();
+  
+  // Show toast notification
+  showToast(`نقش شما به «${role === 'manager' ? 'مدیر کل' : 'ادمین'}» تغییر یافت و دسترسی‌ها همگام شدند.`, "info");
+}
+
 function renderUsersTable() {
   const tbody = document.querySelector("#usersManageTable tbody");
   if (!tbody) return;
-  tbody.innerHTML = appState.users
+
+  const searchQuery = document.getElementById("userTableSearch") ? document.getElementById("userTableSearch").value.trim().toLowerCase() : "";
+  
+  const roleOrder = {
+    "مدیر سایت": 1,
+    "مدیر سیستم": 1,
+    "ادمین": 2,
+    "مدیر فروش": 2,
+    "پشتیبان": 2,
+    "مشتری VIP": 3,
+    "مشتری عادی": 3,
+    "کاربر عادی": 3
+  };
+
+  // Sort: Managers first, then Admins, then Users last
+  const sortedUsers = [...appState.users].sort((a, b) => {
+    const orderA = roleOrder[a.role] || 99;
+    const orderB = roleOrder[b.role] || 99;
+    return orderA - orderB;
+  });
+
+  const filteredUsers = sortedUsers.filter(u => {
+    return u && (
+           String(u.name || "").toLowerCase().includes(searchQuery) ||
+           String(u.role || "").toLowerCase().includes(searchQuery) ||
+           String(u.contact || "").toLowerCase().includes(searchQuery)
+    );
+  });
+
+  const isLocked = currentAdminUserRole === "admin";
+
+  // Lock or unlock "Add User" button in the view header
+  const addUserHeaderBtn = document.querySelector('#view-users .page-title .btn-primary');
+  if (addUserHeaderBtn) {
+    if (isLocked) {
+      addUserHeaderBtn.style.opacity = "0.5";
+      addUserHeaderBtn.style.pointerEvents = "none";
+      addUserHeaderBtn.title = "افزودن کاربر مخصوص مدیر کل می‌باشد";
+    } else {
+      addUserHeaderBtn.style.opacity = "1";
+      addUserHeaderBtn.style.pointerEvents = "auto";
+      addUserHeaderBtn.title = "افزودن کاربر جدید";
+    }
+  }
+
+  tbody.innerHTML = filteredUsers
     .map(
-      (user) => `
-        <tr>
-            <td>#${user.id}</td>
-            <td>${user.name}</td>
-            <td>${user.contact}</td>
-            <td>${user.role}</td>
-            <td><span class="status ${user.status === "فعال" ? "success" : "cancelled"}">${user.status}</span></td>
-            <td>
-                <button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="editUser(${user.id})">ویرایش</button>
-                <button class="btn-secondary" style="padding: 4px 8px; font-size: 11px; color: var(--danger); border-color: rgba(255,59,48,0.3);" onclick="deleteUser(${user.id})">حذف</button>
-            </td>
-        </tr>
-    `,
+      (user) => {
+        // Blur contact details if locked (role is admin)
+        const contactStyle = isLocked ? 'filter: blur(5px); select: none; pointer-events: none; user-select: none;' : '';
+        const contactTitle = isLocked ? 'title="اطلاعات حساس - مخصوص مدیر کل"' : '';
+        const contactText = isLocked ? "•••••••••••••••••" : user.contact;
+
+        // Faded styles for operations if locked
+        const actionStyle = isLocked ? 'opacity: 0.4; pointer-events: none; cursor: not-allowed;' : '';
+        const actionTitle = isLocked ? 'title="عملیات مدیریت مخصوص مدیر کل می‌باشد"' : '';
+
+        return `
+          <tr>
+              <td>#${toPersianDigits(user.id)}</td>
+              <td style="font-weight: 500;">${user.name}</td>
+              <td ${contactTitle} style="${contactStyle}">${contactText}</td>
+              <td><span class="status pending" style="background: rgba(0, 122, 255, 0.08); color: var(--primary); font-size: 11px; font-weight: bold; border-radius: 6px; padding: 4px 8px;">${user.role}</span></td>
+              <td><span class="status ${user.status === "فعال" ? "success" : "cancelled"}">${user.status}</span></td>
+              <td>
+                  <button class="btn-secondary" style="padding: 4px 10px; font-size: 12px; cursor: pointer; border-radius: 6px; ${actionStyle}" ${actionTitle} onclick="editUser(${user.id})">ویرایش</button>
+                  <button class="btn-secondary" style="padding: 4px 10px; font-size: 12px; color: var(--danger); border-color: rgba(255,59,48,0.2); background: rgba(255,59,48,0.05); cursor: pointer; border-radius: 6px; ${actionStyle}" ${actionTitle} onclick="deleteUser(${user.id})">حذف</button>
+              </td>
+          </tr>
+        `;
+      }
     )
     .join("");
 }
@@ -796,17 +864,28 @@ function initModals() {
   if (addUserForm) {
     addUserForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const name = document.getElementById("newUserName").value;
-      const contact = document.getElementById("newUserEmail").value;
+      const name = document.getElementById("newUserName").value.trim();
+      const email = document.getElementById("newUserEmail").value.trim();
+      const phone = document.getElementById("newUserPhone").value.trim();
       const role = document.getElementById("newUserRole").value;
 
-      appState.users.unshift({
+      if (!name || !email || !phone) {
+        alert("لطفاً تمامی فیلدهای فرم را به درستی پر کنید.");
+        return;
+      }
+
+      const newUser = {
         id: appState.users.length + 1,
-        name,
-        contact,
-        role,
-        status: "فعال",
-      });
+        name: name,
+        contact: `${email} / ${phone}`,
+        role: role,
+        status: "فعال"
+      };
+
+      appState.users.unshift(newUser);
+
+      // Save to localStorage
+      localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
 
       renderUsersTable();
       closeModal("addUserModal");
@@ -839,6 +918,7 @@ function initModals() {
 function deleteUser(id) {
   if (confirm("آیا از حذف این کاربر توسط مدیر کل اطمینان دارید؟")) {
     appState.users = appState.users.filter((u) => u.id !== id);
+    localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
     renderUsersTable();
     showToast("کاربر از سیستم حذف شد", "error");
   }
@@ -850,6 +930,7 @@ function editUser(id) {
     const newName = prompt("ویرایش نام کاربر:", user.name);
     if (newName) {
       user.name = newName;
+      localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
       renderUsersTable();
       showToast("اطلاعات کاربر به‌روز شد", "success");
     }

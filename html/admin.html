@@ -33,30 +33,12 @@
             </a>
           </li>
 
-          <!-- Users Dropdown -->
-          <li class="dropdown" data-view="users">
-            <a href="#" class="dropdown-toggle">
+          <!-- Users Link (No dropdown) -->
+          <li data-view="users">
+            <a href="#users">
               <i class="fas fa-users"></i>
               <span>کاربران</span>
-              <i class="fas fa-chevron-down arrow"></i>
             </a>
-            <ul class="dropdown-menu">
-              <li>
-                <a href="#users-list" data-action="users-list"
-                  ><i class="fas fa-list"></i> لیست کاربران</a
-                >
-              </li>
-              <li>
-                <a href="#add-user" data-action="add-user"
-                  ><i class="fas fa-user-plus"></i> افزودن کاربر</a
-                >
-              </li>
-              <li>
-                <a href="#user-roles" data-action="user-roles"
-                  ><i class="fas fa-user-tag"></i> نقش‌ها و دسترسی‌ها</a
-                >
-              </li>
-            </ul>
           </li>
 
           <!-- Products Link (No dropdown) -->
@@ -75,30 +57,12 @@
             </a>
           </li>
 
-          <!-- Settings Dropdown -->
-          <li class="dropdown" data-view="settings">
-            <a href="#" class="dropdown-toggle">
+          <!-- Settings Link (No dropdown) -->
+          <li data-view="settings">
+            <a href="#settings">
               <i class="fas fa-cog"></i>
               <span>تنظیمات</span>
-              <i class="fas fa-chevron-down arrow"></i>
             </a>
-            <ul class="dropdown-menu">
-              <li>
-                <a href="#general" data-action="general"
-                  ><i class="fas fa-sliders-h"></i> تنظیمات عمومی</a
-                >
-              </li>
-              <li>
-                <a href="#security" data-action="security"
-                  ><i class="fas fa-shield-alt"></i> امنیت و رمز عبور</a
-                >
-              </li>
-              <li>
-                <a href="#notifications" data-action="notifications"
-                  ><i class="fas fa-bell"></i> تنظیمات اعلان‌ها</a
-                >
-              </li>
-            </ul>
           </li>
 
           <li data-view="site-content">
@@ -455,15 +419,22 @@
             </button>
           </div>
           <div class="glass-card">
-            <div class="card-header">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
               <h2>لیست کاربران سیستم</h2>
-              <input
-                type="text"
-                id="userTableSearch"
-                class="form-control"
-                style="max-width: 250px; padding: 8px 12px"
-                placeholder="جستجوی کاربر..."
-              />
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <label style="font-size: 13px; color: var(--text-secondary); white-space: nowrap;">نقش جاری شما در پنل:</label>
+                <select id="currentPanelRole" class="select-dropdown" style="padding: 6px 12px; border-radius: 6px; font-weight: bold; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1);" onchange="changePanelRole(this.value)">
+                  <option value="manager" selected>👑 مدیر سایت (Super Admin)</option>
+                  <option value="admin">🔑 ادمین (دسترسی محدود)</option>
+                </select>
+                <input
+                  type="text"
+                  id="userTableSearch"
+                  class="form-control"
+                  style="max-width: 180px; padding: 6px 12px;"
+                  placeholder="جستجوی کاربر..."
+                />
+              </div>
             </div>
             <div class="table-container">
               <table class="data-table" id="usersManageTable">
@@ -851,38 +822,46 @@
           </button>
         </div>
         <form id="addUserForm">
-          <div class="form-group">
-            <label>نام و نام خانوادگی</label
-            ><input
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>نقش کاربر</label>
+            <select
+              id="newUserRole"
+              class="form-control select-dropdown"
+              style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1);"
+              required
+            >
+              <option value="ادمین">ادمین</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>نام و نام خانوادگی</label>
+            <input
               type="text"
               id="newUserName"
               class="form-control"
               required
-              placeholder="رضا بهرامی"
+              placeholder="مثال: علی رضایی"
             />
           </div>
-          <div class="form-group">
-            <label>ایمیل یا موبایل</label
-            ><input
-              type="text"
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>آدرس ایمیل</label>
+            <input
+              type="email"
               id="newUserEmail"
               class="form-control"
               required
               placeholder="reza@example.com"
             />
           </div>
-          <div class="form-group">
-            <label>نقش کاربر</label>
-            <select
-              id="newUserRole"
-              class="form-control select-dropdown"
-              style="width: 100%"
-            >
-              <option>مشتری عادی</option>
-              <option>مدیر فروش</option>
-              <option>پشتیبان</option>
-              <option>مدیر سیستم</option>
-            </select>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>شماره تلفن همراه</label>
+            <input
+              type="text"
+              id="newUserPhone"
+              class="form-control"
+              required
+              placeholder="مثال: 09123456789"
+            />
           </div>
           <div class="modal-footer">
             <button
@@ -892,7 +871,7 @@
             >
               انصراف
             </button>
-            <button type="submit" class="btn-primary">ثبت کاربر</button>
+            <button type="submit" class="btn-primary">ثبت کاربر جدید</button>
           </div>
         </form>
       </div>
