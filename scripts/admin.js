@@ -17,6 +17,26 @@ function loadDynamicProducts() {
   return [];
 }
 
+const initialOrders = [
+  { id: "#۷۴۸۳۲", customer: "سام به‌نام", product: "دانلود فایل PDF دوره حسابداری مقدماتی", amount: "۴۹,۰۰۰ تومان", date: "۱۴۰۵/۰۵/۰۱", status: "success" },
+  { id: "#۵۸۳۹۲", customer: "مریم حسینی", product: "دانلود ویدیوهای آموزشی دوره حسابداری مقدماتی", amount: "۹۵,۰۰۰ تومان", date: "۱۴۰۵/۰۴/۳۰", status: "success" },
+  { id: "#۴۸۲۹۱", customer: "علی رضایی", product: "پکیج آموزش ثبت سند حسابداری از صفر تا صد", amount: "۲۹,۰۰۰ تومان", date: "۱۴۰۵/۰۴/۲۹", status: "success" }
+];
+
+function loadDynamicOrders() {
+  try {
+    const raw = localStorage.getItem("irHesabdarOrders");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : initialOrders;
+    }
+  } catch (e) {
+    console.warn("admin: error loading orders", e);
+  }
+  localStorage.setItem("irHesabdarOrders", JSON.stringify(initialOrders));
+  return initialOrders;
+}
+
 let appState = {
   users: [
     {
@@ -56,48 +76,7 @@ let appState = {
     },
   ],
   products: loadDynamicProducts(),
-  orders: [
-    {
-      id: "#۱۲۳۴۵",
-      customer: "علی احمدی",
-      product: "لپ‌تاپ ایسوس",
-      amount: "۲۵,۰۰۰,۰۰۰ تومان",
-      date: "۱۴۰۴/۰۴/۲۸",
-      status: "success",
-    },
-    {
-      id: "#۱۲۳۴۴",
-      customer: "سارا محمدی",
-      product: "گوشی سامسونگ",
-      amount: "۱۵,۰۰۰,۰۰۰ تومان",
-      date: "۱۴۰۴/۰۴/۲۷",
-      status: "pending",
-    },
-    {
-      id: "#۱۲۳۴۳",
-      customer: "محمد رضایی",
-      product: "هدفون بلوتوثی",
-      amount: "۱,۵۰۰,۰۰۰ تومان",
-      date: "۱۴۰۴/۰۴/۲۶",
-      status: "success",
-    },
-    {
-      id: "#۱۲۳۴۲",
-      customer: "زهرا کریمی",
-      product: "تبلت اپل",
-      amount: "۲۰,۰۰۰,۰۰۰ تومان",
-      date: "۱۴۰۴/۰۴/۲۵",
-      status: "cancelled",
-    },
-    {
-      id: "#۱۲۳۴۱",
-      customer: "حسین نوری",
-      product: "ساعت هوشمند",
-      amount: "۳,۵۰۰,۰۰۰ تومان",
-      date: "۱۴۰۴/۰۴/۲۴",
-      status: "pending",
-    },
-  ],
+  orders: loadDynamicOrders(),
   notifications: [
     {
       id: 1,

@@ -65,7 +65,7 @@
         <div class="cart-summary" style="margin-bottom: 24px">
           <div class="summary-row">
             <span>مجموع قیمت کالاها و دوره‌ها:</span>
-            <span>۳۳,۰۰۰,۰۰۰ تومان</span>
+            <span id="cartSubtotalPrice">۳۳,۰۰۰,۰۰۰ تومان</span>
           </div>
           <div class="summary-row" id="discountRow" hidden>
             <span>تخفیف اعمال شده:</span>
@@ -88,27 +88,45 @@
           </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
-        >
-          <a
-            href="index.html"
-            class="btn-secondary"
-            style="text-decoration: none; padding: 12px 24px"
-            ><i class="fas fa-arrow-right"></i> انصراف و بازگشت</a
+        <!-- Billing Details Form -->
+        <form id="checkoutForm">
+          <div class="glass-card" style="margin-bottom: 24px; padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; text-align: right;">
+            <h3 style="margin-bottom: 12px; font-size: 16px; color: #fff;"><i class="fas fa-user" style="color: var(--primary);"></i> مشخصات خریدار</h3>
+            <div class="form-group" style="margin-bottom: 12px; text-align: right;">
+              <label style="display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary);">نام و نام خانوادگی خریدار</label>
+              <input type="text" id="billingName" class="form-control" placeholder="مثال: سام به‌نام" required style="width: 100%; padding: 10px; border-radius: 8px;" />
+            </div>
+            <div class="form-group" style="margin-bottom: 12px; text-align: right;">
+              <label style="display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary);">شماره تلفن همراه</label>
+              <input type="text" id="billingPhone" class="form-control" placeholder="مثال: 09123456789" required style="width: 100%; padding: 10px; border-radius: 8px;" />
+            </div>
+            <div class="form-group" style="margin-bottom: 12px; text-align: right;">
+              <label style="display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary);">آدرس ایمیل</label>
+              <input type="email" id="billingEmail" class="form-control" placeholder="مثال: sam@example.com" required style="width: 100%; padding: 10px; border-radius: 8px;" />
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
           >
-          <a
-            href="gateway.html"
-            class="btn-primary"
-            style="text-decoration: none"
-            ><i class="fas fa-credit-card"></i> تکمیل خرید و انتقال به درگاه</a
-          >
-        </div>
+            <a
+              href="index.html"
+              class="btn-secondary"
+              style="text-decoration: none; padding: 12px 24px"
+              ><i class="fas fa-arrow-right"></i> انصراف و بازگشت</a
+            >
+            <button
+              type="submit"
+              class="btn-primary"
+              style="padding: 12px 24px; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer;"
+            ><i class="fas fa-credit-card"></i> تکمیل خرید و انتقال به درگاه</button>
+          </div>
+        </form>
       </div>
     </div>
     <script src="../scripts/api.js"></script>

@@ -1,23 +1,39 @@
-let CHECKOUT_TOTAL = 33000000;
+let CHECKOUT_TOTAL = 49000;
 
 document.addEventListener("DOMContentLoaded", () => {
-  renderCheckoutItems();
+  // Dynamically calculate total from hesabyarCart
+  let cart = [];
   try {
-    const savedCheckout = JSON.parse(sessionStorage.getItem("hesabyarCheckout") || "{}");
-    if (Number(savedCheckout.total) > 0) {
-      CHECKOUT_TOTAL = Number(savedCheckout.total);
-    }
+    cart = JSON.parse(localStorage.getItem("hesabyarCart") || "[]");
   } catch (error) {
-    CHECKOUT_TOTAL = 33000000;
+    cart = [];
   }
+
+  if (Array.isArray(cart) && cart.length > 0) {
+    CHECKOUT_TOTAL = cart.reduce((sum, item) => sum + (Number(item.price) || 0) * (item.qty || 1), 0);
+  } else {
+    CHECKOUT_TOTAL = 0;
+  }
+
+  renderCheckoutItems();
+
   const discountInput = document.getElementById("discountInput");
   const discountButton = document.getElementById("discountBtn");
   const discountRow = document.getElementById("discountRow");
   const discountAmount = document.getElementById("discountAmount");
+  const subtotalPrice = document.getElementById("cartSubtotalPrice");
   const finalPrice = document.getElementById("cartFinalPrice");
   let finalAmount = CHECKOUT_TOTAL;
 
   const formatMoney = (value) => `${Number(value).toLocaleString("fa-IR")} تومان`;
+
+  if (subtotalPrice) {
+    subtotalPrice.textContent = formatMoney(CHECKOUT_TOTAL);
+  }
+  if (finalPrice) {
+    finalPrice.textContent = formatMoney(finalAmount);
+  }
+
   const showMessage = (message, type) => {
     let messageEl = document.querySelector(".checkout-message");
     if (!messageEl) {
@@ -60,6 +76,31 @@ document.addEventListener("DOMContentLoaded", () => {
       discountButton.disabled = false;
     }
   });
+
+  // Handle Checkout Form Submission (Billing Form)
+  const checkoutForm = document.getElementById("checkoutForm");
+  if (checkoutForm) {
+    checkoutForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      
+      const name = document.getElementById("billingName").value.trim();
+      const phone = document.getElementById("billingPhone").value.trim();
+      const email = document.getElementById("billingEmail").value.trim();
+
+      if (!name || !phone || !email) {
+        alert("لطفاً کلیه مشخصات خریدار را به درستی پر کنید.");
+        return;
+      }
+
+      // Save buyer info to retrieve on receipt page
+      localStorage.setItem("irHesabdarBuyerName", name);
+      localStorage.setItem("irHesabdarBuyerPhone", phone);
+      localStorage.setItem("irHesabdarBuyerEmail", email);
+
+      // Redirect to Gateway
+      window.location.href = "gateway.html";
+    });
+  }
 });
 
 function renderCheckoutItems() {
