@@ -263,6 +263,17 @@ function loadDynamicMessages() {
 
 
 
+let staffAuditLogs = (function () {
+  try { const saved = JSON.parse(localStorage.getItem("irHesabdarStaffAuditLogs")); if (saved && typeof saved === "object") return saved; } catch (e) {}
+  return { 2: [
+    { date: "۱۴۰۵/۰۵/۰۲ - ۱۰:۴۵", text: "نام کاربری خود را از «محمد رضایی» به «محمد رضایی‌منش» تغییر داد." },
+    { date: "۱۴۰۵/۰۵/۰۳ - ۰۹:۲۰", text: "شماره تلفن همراه خود را به «۰۹۱۲۲۲۲۲۲۲۲» تغییر داد." }
+  ] };
+})();
+let recentlyUpdatedStaffId = 2; // demo indicator; profile updates will use markStaffRecentlyUpdated()
+function recordStaffChange(staffId, text) { const now = new Date().toLocaleString("fa-IR"); (staffAuditLogs[staffId] ||= []).unshift({ date: now, text: text }); localStorage.setItem("irHesabdarStaffAuditLogs", JSON.stringify(staffAuditLogs)); }
+function markStaffRecentlyUpdated(staffId) { recentlyUpdatedStaffId = staffId; renderStaffTable(); setTimeout(() => { if (recentlyUpdatedStaffId === staffId) { recentlyUpdatedStaffId = null; renderStaffTable(); } }, 8000); }
+
 let appState = {
   users: loadDynamicUsers(),
   products: loadDynamicProducts(),
@@ -879,18 +890,34 @@ function renderStaffTable() {
   if (!tbody) return;
   const input = document.getElementById("staffTableSearch");
   const query = input ? input.value.trim().toLowerCase() : "";
+  const addStaffBtn = document.querySelector("#view-staff .btn-primary"); if (addStaffBtn) { const locked = currentAdminUserRole === "admin"; addStaffBtn.style.display = locked ? "none" : "inline-flex"; }
   const staffRank = { "مدیر سایت": 1, "مدیر سیستم": 1, "ادمین": 2 };
   const staff = appState.users.filter(function (user) {
     return user && staffRank[user.role] && [user.id, user.name, user.email, user.phone, user.role].join(" ").toLowerCase().includes(query);
   }).sort(function (a, b) { return staffRank[a.role] - staffRank[b.role]; });
   tbody.innerHTML = staff.map(function (user) {
-    return `<tr><td>#${toPersianDigits(user.id)}</td><td style="font-weight:500;">${user.name}<span class="staff-role-badge ${staffRank[user.role] === 1 ? 'manager' : 'admin'}">${user.role}</span></td><td class="user-contact-cell">${user.email || '—'}</td><td class="user-contact-cell">${toPersianDigits(user.phone || '—')}</td><td><span class="status ${user.status === 'فعال' ? 'success' : 'cancelled'}">${user.status}</span></td><td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;" onclick="editStaff(${user.id})">بررسی و ویرایش</button></td></tr>`;
+    const locked = currentAdminUserRole === "admin"; const updated = recentlyUpdatedStaffId === user.id; return `<tr class="${window.pendingStaffDeletion && window.pendingStaffDeletion.id === user.id ? 'user-pending-delete' : ''}"><td>#${toPersianDigits(user.id)}</td><td style="font-weight:500;">${updated ? '<span class="staff-update-dot" title="تغییر جدید ثبت شده"></span>' : ''}${user.name}<span class="staff-role-badge ${staffRank[user.role] === 1 ? 'manager' : 'admin'}">${user.role}</span></td><td class="user-contact-cell">${user.email || '—'}</td><td class="user-contact-cell">${toPersianDigits(user.phone || '—')}</td><td><span class="status ${user.status === 'فعال' ? 'success' : 'cancelled'}">${user.status}</span></td><td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;${locked?'opacity:.45;pointer-events:none;':''}" onclick="editStaff(${user.id})">بررسی و ویرایش</button></td></tr>`;
   }).join("") || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary);">مدیر یا ادمینی برای نمایش وجود ندارد.</td></tr>';
 }
 
 function editStaff(id) {
+  if (currentAdminUserRole === "admin") { showToast("ادمین‌ها فقط اجازه مشاهده فهرست مدیران و ادمین‌ها را دارند.", "error"); return; }
   const staff = appState.users.find(function (user) { return user && user.id === id; });
-  if (staff) showToast(`بخش ویرایش «${staff.name}» در مرحله بعدی طبق نیاز شما تکمیل می‌شود.`, "info");
+  if (!staff) return;
+  document.getElementById("editStaffId").value = id;
+  document.getElementById("staffModalDisplayName").textContent = staff.name || "—";
+  document.getElementById("staffIdDisplay").textContent = "#" + toPersianDigits(staff.id);
+  document.getElementById("staffNameDisplay").textContent = staff.name || "—";
+  document.getElementById("staffEmailDisplay").textContent = staff.email || "—";
+  document.getElementById("staffPhoneDisplay").textContent = toPersianDigits(staff.phone || "—");
+  document.getElementById("editStaffStatus").value = staff.status || "فعال";
+  openModal("editStaffModal");
+}
+function openStaffAuditModal() {
+  const id = Number(document.getElementById("editStaffId").value), staff = appState.users.find(u => u.id === id), list = document.getElementById("staffAuditList");
+  const entries = staffAuditLogs[id] || [];
+  list.innerHTML = entries.length ? entries.map(entry => `<article class="staff-audit-item"><i class="fas fa-pen-to-square"></i><div><p><strong>${staff ? staff.name : "کاربر"}</strong> ${entry.text}</p><time>${entry.date}</time></div></article>`).join("") : '<p class="staff-audit-empty">تغییری برای این حساب ثبت نشده است.</p>';
+  openModal("staffAuditModal");
 }
 
 function renderProductsTable() {
@@ -1494,6 +1521,10 @@ function initModals() {
       });
     });
   }
+
+  const editStaffForm = document.getElementById("editStaffForm");
+  if (editStaffForm) editStaffForm.addEventListener("submit", function (e) { e.preventDefault(); const id = Number(document.getElementById("editStaffId").value), staff = appState.users.find(u => u.id === id), status = document.getElementById("editStaffStatus").value; if (!staff) return; triggerSafetyWarning(`آیا از تغییر وضعیت حساب «${staff.name}» اطمینان دارید؟`, function () { if (staff.status !== status) recordStaffChange(id, `وضعیت حساب را به «${status}» تغییر داد.`); staff.status = status; localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); renderStaffTable(); closeModal("editStaffModal"); showToast("وضعیت حساب به‌روزرسانی شد.", "success"); }); });
+  document.getElementById("deleteStaffBtn")?.addEventListener("click", function () { const id = Number(document.getElementById("editStaffId").value), staff = appState.users.find(u => u.id === id); if (!staff) return; triggerSafetyWarning(`⚠️ آیا از حذف حساب «${staff.name}» مطمئن هستید؟`, function () { window.pendingStaffDeletion = { id }; closeModal("editStaffModal"); switchView("staff"); renderStaffTable(); showToast("حساب برای ۱۰ ثانیه با هشدار قرمز نمایش داده می‌شود.", "error"); setTimeout(function(){ appState.users = appState.users.filter(u=>u.id!==id); localStorage.setItem("irHesabdarUsers",JSON.stringify(appState.users)); window.pendingStaffDeletion=null; renderStaffTable(); showToast("حساب از فهرست حذف شد.","success");},10000); }); });
 
   // Bind radio button listeners for product access type
   const accessTypePremium = document.getElementById("accessTypePremium");
