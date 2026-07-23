@@ -1403,3 +1403,32 @@ button,
 summary {
     cursor: pointer !important;
 }
+
+/* Heartbeat pulse animation for unread indicators */
+@keyframes pulse-heartbeat {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.35); opacity: 0.75; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.pulse-indicator {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    background: var(--danger) !important;
+    border-radius: 50%;
+    animation: pulse-heartbeat 1.2s infinite;
+    box-shadow: 0 0 8px rgba(255, 59, 48, 0.4);
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.seen-indicator {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    background: #86868b !important;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 6px;
+}

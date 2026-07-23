@@ -1029,6 +1029,12 @@ function renderOrdersTable() {
 // Track recently replied message ID to flash it
 let recentlyRepliedMessageId = null;
 
+function isUnanswered(msg) {
+  if (!msg || !Array.isArray(msg.history) || msg.history.length === 0) return false;
+  const lastBubble = msg.history[msg.history.length - 1];
+  return lastBubble.sender === "user";
+}
+
 function updateMessagesBadgeCount() {
   const sidebarBadge = document.getElementById("messages-badge");
   const headerBadge = document.getElementById("messages-header-badge");
@@ -1054,8 +1060,12 @@ function renderFloatingMessages() {
   const container = document.getElementById("floatingMessagesContainer");
   if (!container) return;
 
-  // Sort: most recent first (ID descending)
-  const sortedMsgs = [...appState.messages].sort((a, b) => b.id - a.id);
+  // Sort: Unread messages first (at the top), read ones go to the bottom
+  const sortedMsgs = [...appState.messages].sort((a, b) => {
+    if (a.unread && !b.unread) return -1;
+    if (!a.unread && b.unread) return 1;
+    return b.id - a.id; // Newest first
+  });
 
   if (sortedMsgs.length === 0) {
     container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px;">صندوق پیام‌ها خالی است.</p>';
@@ -1063,16 +1073,23 @@ function renderFloatingMessages() {
   }
 
   container.innerHTML = sortedMsgs.map(msg => {
-    const unreadDot = msg.unread 
-      ? '<span style="width: 8px; height: 8px; background: var(--danger); border-radius: 50%; display: inline-block; margin-right: 6px;"></span>' 
+    // Unread indicator is pulsing heartbeat, read is static gray
+    const indicator = msg.unread 
+      ? '<span class="pulse-indicator" style="margin-left: 6px;"></span>' 
+      : '<span class="seen-indicator" style="margin-left: 6px;"></span>';
+    
+    // Check if unanswered
+    const unansweredBadge = isUnanswered(msg) 
+      ? '<span style="font-size: 10px; background: rgba(255, 149, 0, 0.1); color: #ff9500; border-radius: 4px; padding: 1px 4px; font-weight: bold; margin-left: 6px;">⚠️ پاسخ داده نشده</span>' 
       : '';
+
     return `
       <div onclick="openReadMessageModal(${msg.id})" style="padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; cursor: pointer; transition: background 0.3s; display: flex; flex-direction: column; gap: 4px;" class="floating-msg-item">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <strong style="font-size: 13px; color: var(--text-primary);">${msg.sender} ${unreadDot}</strong>
+          <strong style="font-size: 13px; color: var(--text-primary); display: flex; align-items: center; gap: 4px;">${indicator} ${msg.sender}</strong>
           <span style="font-size: 10px; color: var(--text-secondary);">${toPersianDigits(msg.time)}</span>
         </div>
-        <p style="font-size: 12px; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin: 0; max-width: 280px;">${msg.text}</p>
+        <p style="font-size: 12px; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin: 0; max-width: 280px;">${unansweredBadge}${msg.text}</p>
       </div>
     `;
   }).join("");
@@ -1082,7 +1099,7 @@ function openReadMessageModal(msgId) {
   const msg = appState.messages.find(m => m.id === msgId);
   if (!msg) return;
 
-  // Mark as read
+  // Mark as read (sets unread to false and saves)
   if (msg.unread) {
     msg.unread = false;
     localStorage.setItem("irHesabdarMessages", JSON.stringify(appState.messages));
@@ -1102,12 +1119,62 @@ function openReadMessageModal(msgId) {
   openModal("readMessageModal");
 }
 
+function sendInlineReply(msgId) {
+  const textarea = document.getElementById("inline-reply-text-" + msgId);
+  if (!textarea) return;
+
+  const replyText = textarea.value.trim();
+  if (!replyText) {
+    alert("لطفاً متن پاسخ را وارد کنید.");
+    return;
+  }
+
+  const msg = appState.messages.find(m => m.id === msgId);
+  if (msg) {
+    const sysSettings = loadSystemSettings();
+    const adminDisplayName = sysSettings.adminName || "مدیر سایت";
+
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const hour = String(today.getHours()).padStart(2, "0");
+    const minute = String(today.getMinutes()).padStart(2, "0");
+    const replyTime = `۱۴۰۵/${month}/${day} - ${hour}:${minute}`;
+
+    // Push new reply into thread history!
+    if (!Array.isArray(msg.history)) msg.history = [];
+    msg.history.push({
+      sender: "admin",
+      name: adminDisplayName,
+      text: replyText,
+      time: replyTime
+    });
+    
+    msg.unread = false; // Mark as read
+
+    localStorage.setItem("irHesabdarMessages", JSON.stringify(appState.messages));
+
+    recentlyRepliedMessageId = msgId;
+    renderMessages();
+    updateMessagesBadgeCount();
+    showToast("پاسخ شما با موفقیت ارسال شد.", "success");
+  }
+}
+
 function renderMessages() {
   const container = document.getElementById("messagesListContainer");
   if (!container) return;
 
-  // Sort: most recent first (ID descending)
-  const sortedMsgs = [...appState.messages].sort((a, b) => b.id - a.id);
+  // Sort: Unread and Unanswered messages first (at the top), read/replied ones at the bottom
+  const sortedMsgs = [...appState.messages].sort((a, b) => {
+    const aUnanswered = isUnanswered(a);
+    const bUnanswered = isUnanswered(b);
+    if (a.unread && !b.unread) return -1;
+    if (!a.unread && b.unread) return 1;
+    if (aUnanswered && !bUnanswered) return -1;
+    if (!aUnanswered && bUnanswered) return 1;
+    return b.id - a.id; // Newest first
+  });
 
   if (sortedMsgs.length === 0) {
     container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">هیچ پیامی در صندوق دریافت نشده است.</p>';
@@ -1119,48 +1186,75 @@ function renderMessages() {
       (msg) => {
         const isUnread = msg.unread;
         const unreadClass = isUnread ? "unread" : "";
-        const unreadStyle = isUnread ? "border: 1px solid rgba(0, 122, 255, 0.2); background: rgba(0, 122, 255, 0.03);" : "";
+        const unreadStyle = isUnread ? "border: 1px solid rgba(0, 122, 255, 0.15); background: rgba(0, 122, 255, 0.02);" : "";
         
-        // Check if there is a reply
-        let replyHtml = "";
-        if (msg.reply) {
-          replyHtml = `
-            <div style="margin-top: 15px; padding: 12px; background: rgba(52, 199, 89, 0.05); border-right: 3px solid #34c759; border-radius: 4px; text-align: right; direction: rtl; margin-right: 20px;">
+        // Indicator dot ( pulsing red vs static gray )
+        const indicator = isUnread 
+          ? '<span class="pulse-indicator" style="margin-left: 8px;"></span>' 
+          : '<span class="seen-indicator" style="margin-left: 8px;"></span>';
+
+        // Unanswered banner warning badge
+        const unansweredBadge = isUnanswered(msg)
+          ? '<span style="font-size: 11px; background: rgba(255, 149, 0, 0.08); color: #ff9500; border: 1px solid rgba(255, 149, 0, 0.15); border-radius: 6px; padding: 4px 8px; font-weight: bold; margin-right: 10px;"><i class="fas fa-reply-all"></i> پاسخ داده نشده</span>'
+          : '<span style="font-size: 11px; background: rgba(52, 199, 89, 0.08); color: #34c759; border: 1px solid rgba(52, 199, 89, 0.15); border-radius: 6px; padding: 4px 8px; font-weight: bold; margin-right: 10px;"><i class="fas fa-check-circle"></i> پاسخ داده شده</span>';
+
+        // Render full threaded conversation bubbles!
+        const history = msg.history || [];
+        const bubblesHtml = history.map(bubble => {
+          const isAdmin = bubble.sender === "admin";
+          const align = isAdmin ? "left" : "right";
+          const bubbleBg = isAdmin ? "rgba(52, 199, 89, 0.06)" : "rgba(255, 255, 255, 0.03)";
+          const borderStyle = isAdmin ? "border-right: 3px solid #34c759; margin-right: 40px; margin-left: 0;" : "border-right: 3px solid #007aff; margin-left: 40px; margin-right: 0;";
+          const labelColor = isAdmin ? "#34c759" : "var(--primary)";
+          
+          return `
+            <div style="padding: 12px; background: ${bubbleBg}; ${borderStyle} border-radius: 8px; margin-bottom: 10px;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <strong style="font-size: 13px; color: #34c759;"><i class="fas fa-reply" style="margin-left: 5px;"></i> پاسخ ${msg.repliedBy || "ادمین"}:</strong>
-                <span style="font-size: 11px; color: var(--text-secondary);">${toPersianDigits(msg.replyTime)}</span>
+                <strong style="font-size: 12px; color: ${labelColor};"><i class="fas ${isAdmin ? 'fa-reply' : 'fa-user'}" style="margin-left: 5px;"></i> ${bubble.name} ${isAdmin ? '<span style="font-size: 10px; font-weight: normal; color: var(--text-secondary);">(' + (bubble.name === "مدیر کل سایت" ? "مدیر کل" : "ادمین") + ')</span>' : ''}</strong>
+                <span style="font-size: 11px; color: var(--text-secondary);">${toPersianDigits(bubble.time)}</span>
               </div>
-              <p style="font-size: 13px; color: var(--text-primary); margin: 0; line-height: 1.8;">${msg.reply}</p>
+              <p style="font-size: 13px; color: var(--text-primary); margin: 0; line-height: 1.8;">${bubble.text}</p>
             </div>
           `;
-        }
+        }).join("");
 
-        // Check if we should flash/highlight this thread
+        // Highlight replied thread
         let flashStyle = "";
         if (recentlyRepliedMessageId === msg.id) {
           flashStyle = "outline: 3px solid #007aff; animation: flash-border 1s infinite alternate;";
         }
 
         return `
-          <div class="notification-item ${unreadClass}" id="msg-thread-${msg.id}" style="margin-bottom: 1rem; border-radius: 12px; padding: 15px; transition: all 0.3s; display: block; ${unreadStyle} ${flashStyle}">
-            <div style="display: flex; align-items: flex-start; gap: 12px; text-align: right; direction: rtl;">
-              <div class="notification-icon blue" style="flex-shrink: 0;"><i class="fas fa-envelope"></i></div>
-              <div class="notification-info" style="flex: 1;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                  <strong style="font-size: 14px; color: var(--text-primary);">${msg.sender} <span style="font-size: 11px; font-weight: normal; color: var(--text-secondary); margin-right: 6px;">(${msg.email})</span></strong>
-                  <span class="notification-time" style="font-size: 11px; color: var(--text-secondary);">${toPersianDigits(msg.time)}</span>
-                </div>
-                <p style="font-size: 13px; color: var(--text-primary); line-height: 1.8; margin: 0;">${msg.text}</p>
+          <div class="notification-item ${unreadClass}" id="msg-thread-${msg.id}" style="margin-bottom: 1.5rem; border-radius: 16px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.06); background: rgba(255,255,255,0.01); transition: all 0.3s; display: block; ${unreadStyle} ${flashStyle}">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px; margin-bottom: 15px; text-align: right; direction: rtl;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                ${indicator}
+                <strong style="font-size: 14px; color: var(--text-primary);">گفتگو با ${msg.sender} <span style="font-size: 11px; font-weight: normal; color: var(--text-secondary);">(${msg.email})</span></strong>
+                ${unansweredBadge}
+              </div>
+              <span style="font-size: 11px; color: var(--text-secondary);">شروع گفتگو: ${toPersianDigits(msg.time)}</span>
+            </div>
+
+            <!-- Chat History Area -->
+            <div style="display: flex; flex-direction: column;">
+              ${bubblesHtml}
+            </div>
+
+            <!-- Inline Thread Reply Form (RTL, Beautiful) -->
+            <div style="margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.04); padding-top: 15px;">
+              <div style="display: flex; gap: 10px; align-items: flex-end;">
+                <textarea id="inline-reply-text-${msg.id}" class="form-control" rows="1" placeholder="پاسخ خود را بنویسید..." style="flex: 1; padding: 10px; border-radius: 8px; resize: none; min-height: 40px; line-height: 1.8; text-align: right; direction: rtl;"></textarea>
+                <button type="button" class="btn-primary" onclick="sendInlineReply(${msg.id})" style="padding: 10px 20px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; color: #fff; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                  <i class="fas fa-paper-plane"></i> ارسال پاسخ
+                </button>
               </div>
             </div>
-            ${replyHtml}
           </div>
         `;
       }
     )
     .join("");
 
-  // Add keyframe flash style if not already added
   if (!document.getElementById("flashKeyframeStyle")) {
     const style = document.createElement("style");
     style.id = "flashKeyframeStyle";
@@ -1180,8 +1274,6 @@ function renderMessages() {
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
-      
-      // Clear flash after 5s
       setTimeout(() => {
         recentlyRepliedMessageId = null;
         renderMessages();
