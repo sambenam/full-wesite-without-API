@@ -272,14 +272,35 @@ let staffAuditLogs = (function () {
 })();
 let recentlyUpdatedStaffId = 2; // demo indicator
 let recentStaffFieldChanges = { 2: ["name", "phone"] }; // demo: Mohammad updated these fields
+let pendingStaffProfileChanges = {}; // values stay old until the red review cue expires
 let currentStaffProfileId = 1; // will be set from the authenticated account when login/profile is connected
 function recordStaffChange(staffId, text) { const now = new Date().toLocaleString("fa-IR"); (staffAuditLogs[staffId] ||= []).unshift({ date: now, text: text }); localStorage.setItem("irHesabdarStaffAuditLogs", JSON.stringify(staffAuditLogs)); }
-function markStaffRecentlyUpdated(staffId, fields) { recentlyUpdatedStaffId = staffId; if (fields && fields.length) recentStaffFieldChanges[staffId] = fields; renderStaffTable(); setTimeout(() => { if (recentlyUpdatedStaffId === staffId) { recentlyUpdatedStaffId = null; delete recentStaffFieldChanges[staffId]; renderStaffTable(); } }, 8000); }
+function markStaffRecentlyUpdated(staffId, fields) {
+  recentlyUpdatedStaffId = staffId;
+  if (fields && fields.length) recentStaffFieldChanges[staffId] = fields;
+  renderStaffTable();
+  setTimeout(() => {
+    const staff = appState.users.find(user => user && user.id === staffId);
+    const pending = pendingStaffProfileChanges[staffId];
+    if (staff && pending) {
+      const labels = { name: "نام کاربری", email: "ایمیل", phone: "شماره تلفن همراه" };
+      Object.keys(pending).forEach(field => { const before = staff[field] || "—"; staff[field] = pending[field]; recordStaffChange(staffId, `${labels[field] || field} خود را از «${before}» به «${pending[field]}» تغییر داد.`); });
+      localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
+      delete pendingStaffProfileChanges[staffId];
+    }
+    if (recentlyUpdatedStaffId === staffId) recentlyUpdatedStaffId = null;
+    delete recentStaffFieldChanges[staffId];
+    renderStaffTable();
+  }, 8000);
+}
 function applyStaffProfileChanges(staffId, changes) {
   const staff = appState.users.find(function (user) { return user && user.id === staffId; }); if (!staff) return;
-  const labels = { name: "نام کاربری", email: "ایمیل", phone: "شماره تلفن همراه" }, changed = [];
-  Object.keys(changes || {}).forEach(function (field) { const value = String(changes[field] || "").trim(); if (value && String(staff[field] || "") !== value) { const before = staff[field] || "—"; staff[field] = value; recordStaffChange(staffId, `${labels[field] || field} خود را از «${before}» به «${value}» تغییر داد.`); changed.push(field); } });
-  if (changed.length) { localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); if (staff.role === "ادمین") markStaffRecentlyUpdated(staffId, changed); }
+  const changed = {};
+  Object.keys(changes || {}).forEach(function (field) { const value = String(changes[field] || "").trim(); if (value && String(staff[field] || "") !== value) changed[field] = value; });
+  const fields = Object.keys(changed); if (!fields.length) return;
+  // Admin changes are deliberately staged: old values remain visible during the red review indicator.
+  if (staff.role === "ادمین") { pendingStaffProfileChanges[staffId] = changed; markStaffRecentlyUpdated(staffId, fields); }
+  else { Object.assign(staff, changed); localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); renderStaffTable(); }
 }
 window.applyStaffProfileChanges = applyStaffProfileChanges;
 
@@ -358,7 +379,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initMobileSidebar();
   initTables();
-  // Demo: the red update indicator is visible briefly, just like a real profile update notification.
+  // Demo indicator expires after a short review interval.
   if (recentlyUpdatedStaffId) setTimeout(function () { const id = recentlyUpdatedStaffId; recentlyUpdatedStaffId = null; delete recentStaffFieldChanges[id]; renderStaffTable(); }, 8000);
   initNotifications();
   initModals();
@@ -924,8 +945,11 @@ function editStaff(id) {
   document.getElementById("staffEmailDisplay").textContent = staff.email || "—";
   document.getElementById("staffPhoneDisplay").textContent = toPersianDigits(staff.phone || "—");
   document.getElementById("editStaffStatus").value = staff.status || "فعال";
+  const hasUnreviewedChange = Boolean((recentStaffFieldChanges[id] || []).length);
   const auditDot = document.getElementById("staffAuditUpdateDot");
-  if (auditDot) auditDot.hidden = recentlyUpdatedStaffId !== id;
+  if (auditDot) auditDot.hidden = !hasUnreviewedChange;
+  // Once the manager opens this record, move the cue from the list to the audit button.
+  if (recentlyUpdatedStaffId === id) { recentlyUpdatedStaffId = null; renderStaffTable(); }
   openModal("editStaffModal");
 }
 function openStaffAuditModal() {
