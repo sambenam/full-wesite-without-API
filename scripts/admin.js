@@ -271,13 +271,14 @@ let staffAuditLogs = (function () {
   ] };
 })();
 let recentlyUpdatedStaffId = 2; // demo indicator
-let recentStaffFieldChanges = { 2: ["name", "phone"] }; // demo: Mohammad updated these fields
+let recentStaffFieldChanges = { 2: ["name", "phone"] }; // cues used only on the main list
+let staffModalReviewChanges = { 2: ["name", "phone"] }; // a separate cue, retained for the later edit-modal review
 let pendingStaffProfileChanges = {}; // values stay old until the red review cue expires
 let currentStaffProfileId = 1; // will be set from the authenticated account when login/profile is connected
 function recordStaffChange(staffId, text) { const now = new Date().toLocaleString("fa-IR"); (staffAuditLogs[staffId] ||= []).unshift({ date: now, text: text }); localStorage.setItem("irHesabdarStaffAuditLogs", JSON.stringify(staffAuditLogs)); }
 function markStaffRecentlyUpdated(staffId, fields) {
   recentlyUpdatedStaffId = staffId;
-  if (fields && fields.length) recentStaffFieldChanges[staffId] = fields;
+  if (fields && fields.length) { recentStaffFieldChanges[staffId] = fields; staffModalReviewChanges[staffId] = fields.slice(); }
   renderStaffTable();
   setTimeout(() => {
     const staff = appState.users.find(user => user && user.id === staffId);
@@ -936,7 +937,7 @@ function renderStaffTable() {
 }
 
 function refreshStaffModalChangeCues(id) {
-  const changed = recentStaffFieldChanges[id] || [];
+  const changed = staffModalReviewChanges[id] || [];
   document.querySelectorAll(".staff-modal-field-dot").forEach(function (dot) { dot.hidden = changed.indexOf(dot.getAttribute("data-staff-field")) === -1; });
 }
 
@@ -951,7 +952,10 @@ function editStaff(id) {
   document.getElementById("staffEmailDisplay").textContent = staff.email || "—";
   document.getElementById("staffPhoneDisplay").textContent = toPersianDigits(staff.phone || "—");
   document.getElementById("editStaffStatus").value = staff.status || "فعال";
+  const modalChanges = staffModalReviewChanges[id] || [];
   refreshStaffModalChangeCues(id);
+  // The edit-modal notification has its own timer; it starts only after the manager opens this sheet.
+  if (modalChanges.length) setTimeout(function () { delete staffModalReviewChanges[id]; refreshStaffModalChangeCues(id); }, 8000);
   openModal("editStaffModal");
 }
 function openStaffAuditModal() {
