@@ -612,19 +612,36 @@
                   
                   <!-- Current Password with Eye Toggle -->
                   <div class="form-group" style="margin-bottom: 1rem; position: relative;">
-                    <label>رمز عبور فعلی (ورود به پنل)</label>
+                    <label>رمز عبور فعلی</label>
                     <div style="position: relative; display: flex; align-items: center;">
                       <input type="password" id="setAdminCurrentPassword" class="form-control" placeholder="رمز عبور فعلی" style="width: 100%; padding-left: 40px; border-radius: 8px;" />
                       <i class="fas fa-eye toggle-password-settings" data-target="setAdminCurrentPassword" style="position: absolute; left: 12px; cursor: pointer; color: var(--text-secondary); font-size: 14px; transition: color 0.3s;"></i>
                     </div>
+                    <div id="passwordChangeAlert" style="display: none; color: #ff3b30; font-size: 11px; margin-top: 5px; font-weight: bold; direction: rtl;"></div>
                   </div>
 
-                  <!-- New Password with Eye Toggle -->
-                  <div class="form-group" style="margin-bottom: 1.5rem; position: relative;">
-                    <label>رمز عبور جدید (ورود به پنل)</label>
-                    <div style="position: relative; display: flex; align-items: center;">
-                      <input type="password" id="setAdminPassword" class="form-control" placeholder="رمز عبور جدید" style="width: 100%; padding-left: 40px; border-radius: 8px;" />
-                      <i class="fas fa-eye toggle-password-settings" data-target="setAdminPassword" style="position: absolute; left: 12px; cursor: pointer; color: var(--text-secondary); font-size: 14px; transition: color 0.3s;"></i>
+                  <!-- Trigger to Toggle New Password -->
+                  <div style="margin-bottom: 1rem; text-align: right;">
+                    <button type="button" id="toggleNewPasswordBtn" style="background: none; border: none; color: var(--primary); font-weight: bold; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; padding: 0;">
+                      <i class="fas fa-key"></i> <span>🔑 تمایل به تغییر رمز عبور دارم</span>
+                    </button>
+                  </div>
+
+                  <!-- Collapsible New Password Fields -->
+                  <div id="newPasswordSection" style="display: none; background: rgba(0,122,255,0.03); border: 1px dashed rgba(0,122,255,0.15); padding: 15px; border-radius: 12px; margin-bottom: 1.5rem;">
+                    <div class="form-group" style="margin-bottom: 1rem; text-align: right;">
+                      <label>رمز عبور جدید (ورود به پنل)</label>
+                      <div style="position: relative; display: flex; align-items: center;">
+                        <input type="password" id="setAdminPassword" class="form-control" placeholder="رمز عبور جدید" style="width: 100%; padding-left: 40px; border-radius: 8px;" />
+                        <i class="fas fa-eye toggle-password-settings" data-target="setAdminPassword" style="position: absolute; left: 12px; cursor: pointer; color: var(--text-secondary); font-size: 14px; transition: color 0.3s;"></i>
+                      </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; text-align: right;">
+                      <label>تکرار رمز عبور جدید</label>
+                      <div style="position: relative; display: flex; align-items: center;">
+                        <input type="password" id="setAdminPasswordConfirm" class="form-control" placeholder="تکرار رمز عبور جدید" style="width: 100%; padding-left: 40px; border-radius: 8px;" />
+                        <i class="fas fa-eye toggle-password-settings" data-target="setAdminPasswordConfirm" style="position: absolute; left: 12px; cursor: pointer; color: var(--text-secondary); font-size: 14px; transition: color 0.3s;"></i>
+                      </div>
                     </div>
                   </div>
                 </div>

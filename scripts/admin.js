@@ -145,11 +145,19 @@ function cancelWarningAction() {
     if (nameInput) nameInput.value = sysSettings.adminName || "";
     if (avatarInput) avatarInput.value = sysSettings.adminAvatar || "";
     
-    // Clear password fields on cancel
+    // Restore current password from localStorage
+    const savedPassword = localStorage.getItem("irHesabdarAdminPassword") || "123456";
     const currentPass = document.getElementById("setAdminCurrentPassword");
+    if (currentPass) currentPass.value = savedPassword;
+
+    // Clear and hide new password section
     const newPass = document.getElementById("setAdminPassword");
-    if (currentPass) currentPass.value = "";
+    const confirmPass = document.getElementById("setAdminPasswordConfirm");
     if (newPass) newPass.value = "";
+    if (confirmPass) confirmPass.value = "";
+    
+    const newPasswordSection = document.getElementById("newPasswordSection");
+    if (newPasswordSection) newPasswordSection.style.display = "none";
   }
 
   showToast("عملیات با موفقیت لغو شد.", "info");
@@ -275,17 +283,52 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 3. Admin Profile Settings Form Submission (With safety warning!)
+  // Load and populate current password from localStorage
+  const savedPassword = localStorage.getItem("irHesabdarAdminPassword") || "123456";
+  if (document.getElementById("setAdminCurrentPassword")) {
+    document.getElementById("setAdminCurrentPassword").value = savedPassword;
+  }
+
+  // Toggle New Password section in Settings
+  const toggleNewPasswordBtn = document.getElementById("toggleNewPasswordBtn");
+  const newPasswordSection = document.getElementById("newPasswordSection");
+  if (toggleNewPasswordBtn && newPasswordSection) {
+    toggleNewPasswordBtn.addEventListener("click", () => {
+      if (newPasswordSection.style.display === "none") {
+        newPasswordSection.style.display = "block";
+        document.getElementById("setAdminPassword").required = true;
+        document.getElementById("setAdminPasswordConfirm").required = true;
+      } else {
+        newPasswordSection.style.display = "none";
+        document.getElementById("setAdminPassword").required = false;
+        document.getElementById("setAdminPasswordConfirm").required = false;
+        document.getElementById("setAdminPassword").value = "";
+        document.getElementById("setAdminPasswordConfirm").value = "";
+      }
+    });
+  }
+
+  // 3. Admin Profile Settings Form Submission (With safety warning & password verification!)
   const settingsAdminForm = document.getElementById("settingsAdminForm");
   if (settingsAdminForm) {
     settingsAdminForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const name = document.getElementById("setAdminName").value.trim();
       const avatar = document.getElementById("setAdminAvatar").value.trim();
-      const currentPassword = document.getElementById("setAdminCurrentPassword").value;
-      const newPassword = document.getElementById("setAdminPassword").value;
+      const currentPasswordInput = document.getElementById("setAdminCurrentPassword").value;
+      
+      const isChangingPassword = newPasswordSection && newPasswordSection.style.display === "block";
+      const newPassword = isChangingPassword ? document.getElementById("setAdminPassword").value : "";
+      const confirmPassword = isChangingPassword ? document.getElementById("setAdminPasswordConfirm").value : "";
 
-      triggerSafetyWarning(`آیا از به‌روزرسانی مشخصات کاربری و ذخیره رمز عبور جدید خود اطمینان دارید؟`, () => {
+      if (isChangingPassword) {
+        if (newPassword !== confirmPassword) {
+          showToast("خطا: رمز عبور جدید با تکرار آن همخوانی ندارد.", "error");
+          return;
+        }
+      }
+
+      triggerSafetyWarning(`آیا از به‌روزرسانی مشخصات حساب کاربری خود اطمینان دارید؟`, () => {
         const currentSettings = loadSystemSettings();
         currentSettings.adminName = name;
         currentSettings.adminAvatar = avatar;
@@ -298,11 +341,28 @@ document.addEventListener("DOMContentLoaded", () => {
         if (sideNameEl) sideNameEl.textContent = name;
         if (sideAvatarEl) sideAvatarEl.src = avatar;
 
-        if (newPassword) {
+        if (isChangingPassword && newPassword) {
           localStorage.setItem("irHesabdarAdminPassword", newPassword);
-          showToast("مشخصات و رمز عبور جدید با موفقیت ذخیره شد.", "success");
-          document.getElementById("setAdminCurrentPassword").value = "";
+          document.getElementById("setAdminCurrentPassword").value = newPassword;
           document.getElementById("setAdminPassword").value = "";
+          document.getElementById("setAdminPasswordConfirm").value = "";
+          newPasswordSection.style.display = "none";
+          
+          // Show 10-second disappearing red alert
+          const changeAlert = document.getElementById("passwordChangeAlert");
+          if (changeAlert) {
+            changeAlert.textContent = "⚠️ شما رمز عبور خود را با موفقیت تغییر دادید.";
+            changeAlert.style.display = "block";
+            setTimeout(() => {
+              changeAlert.style.animation = "fadeOut 0.5s ease forwards";
+              setTimeout(() => {
+                changeAlert.style.display = "none";
+                changeAlert.style.animation = "";
+              }, 500);
+            }, 10000);
+          }
+
+          showToast("پروفایل و رمز عبور جدید با موفقیت ذخیره شد.", "success");
         } else {
           showToast("پروفایل کاربری با موفقیت به‌روزرسانی شد.", "success");
         }
