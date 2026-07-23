@@ -163,6 +163,26 @@ function cancelWarningAction() {
   showToast("عملیات با موفقیت لغو شد.", "info");
 }
 
+const initialMessages = [
+  { id: 1, sender: "علی احمدی", email: "ali@example.com", text: "سلام، وقت بخیر. آیا دوره حسابداری مقدماتی شامل پشتیبانی تلگرامی هم هست؟", time: "۱۴۰۵/۰۵/۰۲ - ۱۰:۳۰", unread: true, reply: null },
+  { id: 2, sender: "سارا محمدی", email: "sara@example.com", text: "درود بر شما. فایل اکسل محاسبه حقوق و دستمزد را خریدم ولی دانلود نشد. لطفا راهنمایی کنید.", time: "۱۴۰۵/۰۵/۰۱ - ۱۶:۴۵", unread: true, reply: null },
+  { id: 3, sender: "محمد رضایی", email: "mohammad@example.com", text: "سلام. خسته نباشید. آزمون استخدامی بعدی وزارت اقتصاد چه زمانی برگزار می‌شود؟", time: "۱۴۰۵/۰۴/۳۰ - ۱۴:۱۵", unread: false, reply: "سلام دوست عزیز، هنوز بخشنامه جدیدی صادر نشده است. به محض اعلام اخبار، در تب آزمون‌ها قرار می‌گیرد.", repliedBy: "مدیر کل سایت", replyTime: "۱۴۰۵/۰۴/۳۰ - ۱۵:۰۰" }
+];
+
+function loadDynamicMessages() {
+  try {
+    const raw = localStorage.getItem("irHesabdarMessages");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : initialMessages;
+    }
+  } catch (e) {
+    console.warn("admin: error loading messages", e);
+  }
+  localStorage.setItem("irHesabdarMessages", JSON.stringify(initialMessages));
+  return initialMessages;
+}
+
 let appState = {
   users: loadDynamicUsers(),
   products: loadDynamicProducts(),
@@ -197,29 +217,44 @@ let appState = {
       unread: false,
     },
   ],
-  messages: [
-    {
-      id: 1,
-      sender: "علی احمدی",
-      text: "سلام، کی سفارش من ارسال میشه؟",
-      time: "۳ ساعت پیش",
-    },
-    {
-      id: 2,
-      sender: "سارا محمدی",
-      text: "تشکر از پشتیبانی عالی شما",
-      time: "دیروز",
-    },
-    {
-      id: 3,
-      sender: "رضا مرادی",
-      text: "سوالی درباره گارانتی محصول داشتم",
-      time: "۲ روز پیش",
-    },
-  ],
+  messages: loadDynamicMessages(),
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  // --- MESSAGE SHORTCUT AND PANEL TOGGLES ---
+  const messagesHeaderBtn = document.getElementById("messagesHeaderBtn");
+  const messagesFloatingPanel = document.getElementById("messagesFloatingPanel");
+  const closeFloatingPanelBtn = document.getElementById("closeFloatingPanelBtn");
+
+  if (messagesHeaderBtn && messagesFloatingPanel) {
+    messagesHeaderBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isVisible = messagesFloatingPanel.style.display === "block";
+      if (isVisible) {
+        messagesFloatingPanel.style.display = "none";
+      } else {
+        renderFloatingMessages();
+        messagesFloatingPanel.style.display = "block";
+      }
+    });
+  }
+
+  if (closeFloatingPanelBtn && messagesFloatingPanel) {
+    closeFloatingPanelBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      messagesFloatingPanel.style.display = "none";
+    });
+  }
+
+  // Click anywhere else to close the floating messages panel
+  document.addEventListener("click", (e) => {
+    if (messagesFloatingPanel && messagesFloatingPanel.style.display === "block") {
+      if (!messagesFloatingPanel.contains(e.target) && messagesHeaderBtn && !messagesHeaderBtn.contains(e.target)) {
+        messagesFloatingPanel.style.display = "none";
+      }
+    }
+  });
+
   initNavigation();
   initMobileSidebar();
   initTables();
@@ -430,6 +465,10 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof renderAnalyticsView === "function") {
     renderAnalyticsView();
   }
+  
+  // Render message badges and containers on load
+  updateMessagesBadgeCount();
+  renderMessages();
   if (typeof renderAnalyticsView === "function") {
     renderAnalyticsView();
   }
@@ -577,6 +616,11 @@ function switchView(viewName) {
   // Handle rendering of Analytics View
   if (viewName === "analytics" && typeof renderAnalyticsView === "function") {
     renderAnalyticsView();
+  }
+
+  // Handle rendering and updating messages count when entering Messages tab
+  if (viewName === "messages") {
+    renderMessages();
   }
 
   // Handle rendering of Analytics View
@@ -981,24 +1025,171 @@ function renderOrdersTable() {
     .join("");
 }
 
+
+// Track recently replied message ID to flash it
+let recentlyRepliedMessageId = null;
+
+function updateMessagesBadgeCount() {
+  const sidebarBadge = document.getElementById("messages-badge");
+  const headerBadge = document.getElementById("messages-header-badge");
+
+  const unreadCount = appState.messages.filter(m => m.unread).length;
+
+  if (unreadCount > 0) {
+    const farsiCount = toPersianDigits(unreadCount);
+    if (sidebarBadge) {
+      sidebarBadge.textContent = farsiCount;
+      sidebarBadge.style.display = "inline-flex";
+    }
+    if (headerBadge) {
+      headerBadge.style.display = "block";
+    }
+  } else {
+    if (sidebarBadge) sidebarBadge.style.display = "none";
+    if (headerBadge) headerBadge.style.display = "none";
+  }
+}
+
+function renderFloatingMessages() {
+  const container = document.getElementById("floatingMessagesContainer");
+  if (!container) return;
+
+  // Sort: most recent first (ID descending)
+  const sortedMsgs = [...appState.messages].sort((a, b) => b.id - a.id);
+
+  if (sortedMsgs.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 10px;">صندوق پیام‌ها خالی است.</p>';
+    return;
+  }
+
+  container.innerHTML = sortedMsgs.map(msg => {
+    const unreadDot = msg.unread 
+      ? '<span style="width: 8px; height: 8px; background: var(--danger); border-radius: 50%; display: inline-block; margin-right: 6px;"></span>' 
+      : '';
+    return `
+      <div onclick="openReadMessageModal(${msg.id})" style="padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; cursor: pointer; transition: background 0.3s; display: flex; flex-direction: column; gap: 4px;" class="floating-msg-item">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <strong style="font-size: 13px; color: var(--text-primary);">${msg.sender} ${unreadDot}</strong>
+          <span style="font-size: 10px; color: var(--text-secondary);">${toPersianDigits(msg.time)}</span>
+        </div>
+        <p style="font-size: 12px; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin: 0; max-width: 280px;">${msg.text}</p>
+      </div>
+    `;
+  }).join("");
+}
+
+function openReadMessageModal(msgId) {
+  const msg = appState.messages.find(m => m.id === msgId);
+  if (!msg) return;
+
+  // Mark as read
+  if (msg.unread) {
+    msg.unread = false;
+    localStorage.setItem("irHesabdarMessages", JSON.stringify(appState.messages));
+    updateMessagesBadgeCount();
+    renderFloatingMessages();
+    renderMessages();
+  }
+
+  // Populate modal
+  document.getElementById("replyMsgId").value = msgId;
+  document.getElementById("readMsgSender").textContent = msg.sender || "ناشناس";
+  document.getElementById("readMsgEmail").textContent = msg.email || "---";
+  document.getElementById("readMsgDate").textContent = toPersianDigits(msg.time || "---");
+  document.getElementById("readMsgBody").textContent = msg.text || "---";
+  document.getElementById("replyMsgText").value = "";
+
+  openModal("readMessageModal");
+}
+
 function renderMessages() {
   const container = document.getElementById("messagesListContainer");
   if (!container) return;
-  container.innerHTML = appState.messages
+
+  // Sort: most recent first (ID descending)
+  const sortedMsgs = [...appState.messages].sort((a, b) => b.id - a.id);
+
+  if (sortedMsgs.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">هیچ پیامی در صندوق دریافت نشده است.</p>';
+    return;
+  }
+
+  container.innerHTML = sortedMsgs
     .map(
-      (msg) => `
-        <div class="notification-item unread">
-            <div class="notification-icon blue"><i class="fas fa-envelope"></i></div>
-            <div class="notification-info">
-                <h4>${msg.sender}</h4>
-                <p>${msg.text}</p>
-                <span class="notification-time">${msg.time}</span>
+      (msg) => {
+        const isUnread = msg.unread;
+        const unreadClass = isUnread ? "unread" : "";
+        const unreadStyle = isUnread ? "border: 1px solid rgba(0, 122, 255, 0.2); background: rgba(0, 122, 255, 0.03);" : "";
+        
+        // Check if there is a reply
+        let replyHtml = "";
+        if (msg.reply) {
+          replyHtml = `
+            <div style="margin-top: 15px; padding: 12px; background: rgba(52, 199, 89, 0.05); border-right: 3px solid #34c759; border-radius: 4px; text-align: right; direction: rtl; margin-right: 20px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <strong style="font-size: 13px; color: #34c759;"><i class="fas fa-reply" style="margin-left: 5px;"></i> پاسخ ${msg.repliedBy || "ادمین"}:</strong>
+                <span style="font-size: 11px; color: var(--text-secondary);">${toPersianDigits(msg.replyTime)}</span>
+              </div>
+              <p style="font-size: 13px; color: var(--text-primary); margin: 0; line-height: 1.8;">${msg.reply}</p>
             </div>
-        </div>
-    `,
+          `;
+        }
+
+        // Check if we should flash/highlight this thread
+        let flashStyle = "";
+        if (recentlyRepliedMessageId === msg.id) {
+          flashStyle = "outline: 3px solid #007aff; animation: flash-border 1s infinite alternate;";
+        }
+
+        return `
+          <div class="notification-item ${unreadClass}" id="msg-thread-${msg.id}" style="margin-bottom: 1rem; border-radius: 12px; padding: 15px; transition: all 0.3s; display: block; ${unreadStyle} ${flashStyle}">
+            <div style="display: flex; align-items: flex-start; gap: 12px; text-align: right; direction: rtl;">
+              <div class="notification-icon blue" style="flex-shrink: 0;"><i class="fas fa-envelope"></i></div>
+              <div class="notification-info" style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <strong style="font-size: 14px; color: var(--text-primary);">${msg.sender} <span style="font-size: 11px; font-weight: normal; color: var(--text-secondary); margin-right: 6px;">(${msg.email})</span></strong>
+                  <span class="notification-time" style="font-size: 11px; color: var(--text-secondary);">${toPersianDigits(msg.time)}</span>
+                </div>
+                <p style="font-size: 13px; color: var(--text-primary); line-height: 1.8; margin: 0;">${msg.text}</p>
+              </div>
+            </div>
+            ${replyHtml}
+          </div>
+        `;
+      }
     )
     .join("");
+
+  // Add keyframe flash style if not already added
+  if (!document.getElementById("flashKeyframeStyle")) {
+    const style = document.createElement("style");
+    style.id = "flashKeyframeStyle";
+    style.innerHTML = `
+      @keyframes flash-border {
+        0% { outline-color: #007aff; }
+        100% { outline-color: rgba(0, 122, 255, 0.1); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Smooth scroll and clear flash after 5 seconds
+  if (recentlyRepliedMessageId) {
+    setTimeout(() => {
+      const el = document.getElementById("msg-thread-" + recentlyRepliedMessageId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      
+      // Clear flash after 5s
+      setTimeout(() => {
+        recentlyRepliedMessageId = null;
+        renderMessages();
+      }, 5000);
+    }, 200);
+  }
 }
+
 
 function getStatusText(status) {
   if (status === "success") return "تکمیل شده";
@@ -1058,6 +1249,50 @@ function closeModal(modalId) {
 }
 
 function initModals() {
+  // Reply Message Form Submission
+  const replyMessageForm = document.getElementById("replyMessageForm");
+  const messagesFloatingPanelElement = document.getElementById("messagesFloatingPanel");
+  if (replyMessageForm) {
+    replyMessageForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      
+      const msgId = parseInt(document.getElementById("replyMsgId").value);
+      const replyText = document.getElementById("replyMsgText").value.trim();
+
+      const msg = appState.messages.find(m => m.id === msgId);
+      if (msg) {
+        const sysSettings = loadSystemSettings();
+        const adminDisplayName = sysSettings.adminName || "مدیر سایت";
+
+        const today = new Date();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+        const hour = String(today.getHours()).padStart(2, "0");
+        const minute = String(today.getMinutes()).padStart(2, "0");
+        const replyTime = `۱۴۰۵/${month}/${day} - ${hour}:${minute}`;
+
+        msg.reply = replyText;
+        msg.repliedBy = adminDisplayName;
+        msg.replyTime = replyTime;
+        msg.unread = false;
+
+        localStorage.setItem("irHesabdarMessages", JSON.stringify(appState.messages));
+
+        closeModal("readMessageModal");
+        if (messagesFloatingPanelElement) {
+          messagesFloatingPanelElement.style.display = "none";
+        }
+
+        recentlyRepliedMessageId = msgId;
+        switchView("messages");
+        renderMessages();
+        updateMessagesBadgeCount();
+
+        showToast("پاسخ شما با موفقیت ارسال شد و در تاریخچه پیام‌ها قرار گرفت.", "success");
+      }
+    });
+  }
+
   // Safety confirmation buttons
   document.getElementById("warningConfirmBtn")?.addEventListener("click", executeWarningAction);
   document.getElementById("warningCancelBtn")?.addEventListener("click", cancelWarningAction);

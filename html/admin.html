@@ -152,14 +152,29 @@
             </div>
           </div>
 
-          <button
-            class="header-btn"
-            id="messagesHeaderBtn"
-            title="پیام‌ها"
-            onclick="switchView('messages')"
-          >
-            <i class="fas fa-envelope"></i>
-          </button>
+          <div style="position: relative;">
+            <button
+              class="header-btn"
+              id="messagesHeaderBtn"
+              title="پیام‌ها"
+              style="position: relative;"
+            >
+              <i class="fas fa-envelope"></i>
+              <span class="notification-dot" id="messages-header-badge" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; display: none;"></span>
+            </button>
+            
+            <!-- FLOATING MESSAGES PANEL -->
+            <div class="messages-floating-panel" id="messagesFloatingPanel" style="position: absolute; top: 50px; left: 0; width: 320px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); z-index: 10002; padding: 15px; display: none; text-align: right; direction: rtl;">
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 10px; margin-bottom: 10px;">
+                <h4 style="margin: 0; color: var(--text-primary); font-size: 14px; font-weight: bold;"><i class="fas fa-envelope-open-text" style="color: var(--primary); margin-left: 6px;"></i> پیام‌های اخیر خریداران</h4>
+                <button type="button" id="closeFloatingPanelBtn" style="background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 14px;"><i class="fas fa-times"></i></button>
+              </div>
+              <div id="floatingMessagesContainer" style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding-left: 5px;">
+                <!-- Rendered dynamically with JS -->
+              </div>
+            </div>
+          </div>
+
           <button
             class="header-btn"
             id="profileHeaderBtn"
@@ -1437,6 +1452,47 @@
           <button type="button" class="btn-primary" onclick="downloadDetailedBestsellersReport()" style="background: #10b981; border-color: #10b981; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px;">
             <i class="fas fa-file-excel"></i> دانلود گزارش کامل پرفروش‌ترین‌ها (Excel)
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: READ AND REPLY TO USER MESSAGES -->
+    <div class="modal-overlay" id="readMessageModal" style="z-index: 10003;">
+      <div class="modal-box" style="max-width: 500px;">
+        <div class="modal-header">
+          <h3>💬 خواندن و پاسخ به پیام</h3>
+          <button class="modal-close" onclick="closeModal('readMessageModal')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem; text-align: right; direction: rtl;">
+          <!-- Message Metadata -->
+          <div style="background: rgba(0,122,255,0.03); border: 1px solid rgba(0,122,255,0.06); padding: 12px; border-radius: 8px; margin-bottom: 1.25rem;">
+            <div style="margin-bottom: 6px;"><strong style="color: var(--text-secondary);">ارسال‌کننده:</strong> <span id="readMsgSender" style="color: var(--text-primary); font-weight: bold;">---</span></div>
+            <div style="margin-bottom: 6px;"><strong style="color: var(--text-secondary);">آدرس ایمیل:</strong> <span id="readMsgEmail" style="color: var(--primary); font-weight: bold;">---</span></div>
+            <div><strong style="color: var(--text-secondary);">تاریخ ارسال:</strong> <span id="readMsgDate" style="color: var(--text-secondary); font-weight: bold;">---</span></div>
+          </div>
+          
+          <!-- Message Original Body -->
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-weight: bold; margin-bottom: 6px; color: var(--text-primary);">متن پیام کاربر:</label>
+            <div id="readMsgBody" style="background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); padding: 12px; border-radius: 8px; font-size: 14px; color: var(--text-primary); line-height: 1.8;">
+              ---
+            </div>
+          </div>
+
+          <form id="replyMessageForm">
+            <input type="hidden" id="replyMsgId" />
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label style="display: block; font-weight: bold; margin-bottom: 6px; color: var(--primary);">📝 پاسخ شما به عنوان مدیر/ادمین:</label>
+              <textarea id="replyMsgText" class="form-control" rows="4" placeholder="متن پاسخ خود را اینجا وارد کنید..." required style="width: 100%; padding: 10px; border-radius: 8px; line-height: 1.8;"></textarea>
+            </div>
+            
+            <div class="modal-footer" style="padding: 0; border-top: none;">
+              <button type="button" class="btn-secondary" onclick="closeModal('readMessageModal')" style="padding: 10px 20px;">انصراف</button>
+              <button type="submit" class="btn-primary" style="padding: 10px 20px; cursor: pointer; border: none; font-weight: bold; color: #fff;">ارسال پاسخ فوری</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
