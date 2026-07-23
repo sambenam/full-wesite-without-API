@@ -382,7 +382,8 @@ function updateSettingsLockout() {
   const settingsView = document.getElementById("view-settings");
   if (!settingsView) return;
 
-  const inputs = settingsView.querySelectorAll("input, select, button");
+  // Only target General Form and Gateway Form for lockout! Leave Admin Profile Form (Card 3) fully active.
+  const inputs = settingsView.querySelectorAll("#settingsGeneralForm input, #settingsGeneralForm select, #settingsGeneralForm button, #settingsGatewayForm input, #settingsGatewayForm select, #settingsGatewayForm button");
   inputs.forEach(function(el) {
     if (isLocked) {
       el.disabled = true;
