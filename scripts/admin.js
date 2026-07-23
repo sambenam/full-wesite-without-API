@@ -164,9 +164,62 @@ function cancelWarningAction() {
 }
 
 const initialMessages = [
-  { id: 1, sender: "علی احمدی", email: "ali@example.com", text: "سلام، وقت بخیر. آیا دوره حسابداری مقدماتی شامل پشتیبانی تلگرامی هم هست؟", time: "۱۴۰۵/۰۵/۰۲ - ۱۰:۳۰", unread: true, reply: null },
-  { id: 2, sender: "سارا محمدی", email: "sara@example.com", text: "درود بر شما. فایل اکسل محاسبه حقوق و دستمزد را خریدم ولی دانلود نشد. لطفا راهنمایی کنید.", time: "۱۴۰۵/۰۵/۰۱ - ۱۶:۴۵", unread: true, reply: null },
-  { id: 3, sender: "محمد رضایی", email: "mohammad@example.com", text: "سلام. خسته نباشید. آزمون استخدامی بعدی وزارت اقتصاد چه زمانی برگزار می‌شود؟", time: "۱۴۰۵/۰۴/۳۰ - ۱۴:۱۵", unread: false, reply: "سلام دوست عزیز، هنوز بخشنامه جدیدی صادر نشده است. به محض اعلام اخبار، در تب آزمون‌ها قرار می‌گیرد.", repliedBy: "مدیر کل سایت", replyTime: "۱۴۰۵/۰۴/۳۰ - ۱۵:۰۰" }
+  { 
+    id: 1, 
+    sender: "علی احمدی", 
+    email: "ali@example.com", 
+    text: "سلام، وقت بخیر. آیا دوره حسابداری مقدماتی شامل پشتیبانی تلگرامی هم هست؟", 
+    time: "۱۴۰۵/۰۵/۰۲ - ۱۰:۳۰", 
+    unread: true, 
+    history: [
+      { sender: "user", name: "علی احمدی", text: "سلام، وقت بخیر. آیا دوره حسابداری مقدماتی شامل پشتیبانی تلگرامی هم هست؟", time: "۱۴۰۵/۰۵/۰۲ - ۱۰:۳۰" }
+    ]
+  },
+  { 
+    id: 2, 
+    sender: "سارا محمدی", 
+    email: "sara@example.com", 
+    text: "درود بر شما. فایل اکسل محاسبه حقوق و دستمزد را خریدم ولی دانلود نشد. لطفا راهنمایی کنید.", 
+    time: "۱۴۰۵/۰۵/۰۱ - ۱۶:۴۵", 
+    unread: true, 
+    history: [
+      { sender: "user", name: "سارا محمدی", text: "درود بر شما. فایل اکسل محاسبه حقوق و دستمزد را خریدم ولی دانلود نشد. لطفا راهنمایی کنید.", time: "۱۴۰۵/۰۵/۰۱ - ۱۶:۴۵" }
+    ]
+  },
+  { 
+    id: 3, 
+    sender: "محمد رضایی", 
+    email: "mohammad@example.com", 
+    text: "سلام. خسته نباشید. آزمون استخدامی بعدی وزارت اقتصاد چه زمانی برگزار می‌شود؟", 
+    time: "۱۴۰۵/۰۴/۳۰ - ۱۴:۱۵", 
+    unread: false, 
+    history: [
+      { sender: "user", name: "محمد رضایی", text: "سلام. خسته نباشید. آزمون استخدامی بعدی وزارت اقتصاد چه زمانی برگزار می‌شود؟", time: "۱۴۰۵/۰۴/۳۰ - ۱۴:۱۵" },
+      { sender: "admin", name: "مدیر کل سایت", text: "سلام دوست عزیز، هنوز بخشنامه جدیدی صادر نشده است. به محض اعلام اخبار، در تب آزمون‌ها قرار می‌گیرد.", time: "۱۴۰۵/۰۴/۳۰ - ۱۵:۰۰" }
+    ]
+  },
+  {
+    id: 4,
+    sender: "زهرا کریمی",
+    email: "zahra@example.com",
+    text: "سلام. چطور می‌توانم فاکتور خرید دوره مالیاتی را دریافت کنم؟",
+    time: "۱۴۰۵/۰۵/۰۳ - ۰۹:۰۰",
+    unread: true,
+    history: [
+      { sender: "user", name: "زهرا کریمی", text: "سلام. چطور می‌توانم فاکتور خرید دوره مالیاتی را دریافت کنم؟", time: "۱۴۰۵/۰۵/۰۳ - ۰۹:۰۰" }
+    ]
+  },
+  {
+    id: 5,
+    sender: "پشتیبان تستی",
+    email: "test-support@example.com",
+    text: "این یک پیام آزمایشی خوانده‌نشده و بی‌پاسخ است تا بتوانید تپش قلب و انتقال‌ها را به راحتی تست کنید.",
+    time: "۱۴۰۵/۰۵/۰۳ - ۱۲:۰۰",
+    unread: true,
+    history: [
+      { sender: "user", name: "پشتیبان تستی", text: "این یک پیام آزمایشی خوانده‌نشده و بی‌پاسخ است تا بتوانید تپش قلب و انتقال‌ها را به راحتی تست کنید.", time: "۱۴۰۵/۰۵/۰۳ - ۱۲:۰۰" }
+    ]
+  }
 ];
 
 function loadDynamicMessages() {
@@ -174,7 +227,19 @@ function loadDynamicMessages() {
     const raw = localStorage.getItem("irHesabdarMessages");
     if (raw) {
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : initialMessages;
+      // Clean up legacy localstorage data by converting it or filtering
+      if (Array.isArray(parsed)) {
+        return parsed.map(function(msg) {
+          if (msg && !Array.isArray(msg.history)) {
+            // Convert old legacy messages to new history bubble format!
+            msg.history = [{ sender: "user", name: msg.sender, text: msg.text, time: msg.time }];
+            if (msg.reply) {
+              msg.history.push({ sender: "admin", name: msg.repliedBy || "مدیر کل سایت", text: msg.reply, time: msg.replyTime || msg.time });
+            }
+          }
+          return msg;
+        });
+      }
     }
   } catch (e) {
     console.warn("admin: error loading messages", e);
@@ -182,6 +247,8 @@ function loadDynamicMessages() {
   localStorage.setItem("irHesabdarMessages", JSON.stringify(initialMessages));
   return initialMessages;
 }
+
+
 
 let appState = {
   users: loadDynamicUsers(),
@@ -1030,9 +1097,15 @@ function renderOrdersTable() {
 let recentlyRepliedMessageId = null;
 
 function isUnanswered(msg) {
-  if (!msg || !Array.isArray(msg.history) || msg.history.length === 0) return false;
+  if (!msg) return false;
+  
+  // Defensive check for legacy/corrupted data
+  if (!Array.isArray(msg.history) || msg.history.length === 0) {
+    return !msg.reply; // If no reply string, then it is unanswered!
+  }
+  
   const lastBubble = msg.history[msg.history.length - 1];
-  return lastBubble.sender === "user";
+  return lastBubble && lastBubble.sender === "user";
 }
 
 function updateMessagesBadgeCount() {
@@ -1060,10 +1133,14 @@ function renderFloatingMessages() {
   const container = document.getElementById("floatingMessagesContainer");
   if (!container) return;
 
-  // Sort: Unread messages first (at the top), read ones go to the bottom
+  // Sort: Unread/Unanswered messages first (at the top), read/replied ones go to the bottom
   const sortedMsgs = [...appState.messages].sort((a, b) => {
+    const aUnanswered = isUnanswered(a);
+    const bUnanswered = isUnanswered(b);
     if (a.unread && !b.unread) return -1;
     if (!a.unread && b.unread) return 1;
+    if (aUnanswered && !bUnanswered) return -1;
+    if (!aUnanswered && bUnanswered) return 1;
     return b.id - a.id; // Newest first
   });
 
@@ -1186,7 +1263,11 @@ function renderMessages() {
       (msg) => {
         const isUnread = msg.unread;
         const unreadClass = isUnread ? "unread" : "";
-        const unreadStyle = isUnread ? "border: 1px solid rgba(0, 122, 255, 0.15); background: rgba(0, 122, 255, 0.02);" : "";
+        
+        // Background of unread has soft blue, read is translucent white
+        const boxBg = isUnread ? "rgba(0, 122, 255, 0.04)" : "rgba(255, 255, 255, 0.3)";
+        const boxBorder = isUnread ? "rgba(0, 122, 255, 0.25)" : "rgba(255, 255, 255, 0.5)";
+        const unreadStyle = `background: ${boxBg} !important; border: 1px solid ${boxBorder} !important; box-shadow: var(--shadow-card);`;
         
         // Indicator dot ( pulsing red vs static gray )
         const indicator = isUnread 
@@ -1225,7 +1306,7 @@ function renderMessages() {
         }
 
         return `
-          <div class="notification-item ${unreadClass}" id="msg-thread-${msg.id}" style="margin-bottom: 1.5rem; border-radius: 16px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.06); background: rgba(255,255,255,0.01); transition: all 0.3s; display: block; ${unreadStyle} ${flashStyle}">
+          <div class="notification-item ${unreadClass}" id="msg-thread-${msg.id}" style="margin-bottom: 2rem; border-radius: 20px; padding: 22px; transition: all 0.3s; display: block; ${unreadStyle} ${flashStyle}">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px; margin-bottom: 15px; text-align: right; direction: rtl;">
               <div style="display: flex; align-items: center; gap: 6px;">
                 ${indicator}
@@ -1243,7 +1324,7 @@ function renderMessages() {
             <!-- Inline Thread Reply Form (RTL, Beautiful) -->
             <div style="margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.04); padding-top: 15px;">
               <div style="display: flex; gap: 10px; align-items: flex-end;">
-                <textarea id="inline-reply-text-${msg.id}" class="form-control" rows="1" placeholder="پاسخ خود را بنویسید..." style="flex: 1; padding: 10px; border-radius: 8px; resize: none; min-height: 40px; line-height: 1.8; text-align: right; direction: rtl;"></textarea>
+                <textarea id="inline-reply-text-${msg.id}" class="form-control" rows="1" placeholder="پاسخ خود را بنویسید..." style="flex: 1; padding: 10px; border-radius: 8px; resize: none; min-height: 40px; line-height: 1.8; text-align: right; direction: rtl; background: rgba(255,255,255,0.4); border: 1px solid rgba(0,0,0,0.08);"></textarea>
                 <button type="button" class="btn-primary" onclick="sendInlineReply(${msg.id})" style="padding: 10px 20px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; color: #fff; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
                   <i class="fas fa-paper-plane"></i> ارسال پاسخ
                 </button>
