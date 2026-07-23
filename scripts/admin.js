@@ -349,6 +349,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initMobileSidebar();
   initTables();
+  // Demo: the red update indicator is visible briefly, just like a real profile update notification.
+  if (recentlyUpdatedStaffId) setTimeout(function () { recentlyUpdatedStaffId = null; renderStaffTable(); }, 8000);
   initNotifications();
   initModals();
   initSearch();
