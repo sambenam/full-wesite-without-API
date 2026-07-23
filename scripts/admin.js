@@ -64,6 +64,30 @@ function loadDynamicUsers() {
   return initialUsers;
 }
 
+function loadSystemSettings() {
+  const defaultSettings = {
+    supportEmail: "support@irhesabdar.ir",
+    supportPhone: "۰۹۱۲۳۴۵۶۷۸۹",
+    maintenanceMode: false,
+    merchantId: "e482da20-9bf3-482a-89a1-893f2dae89cf",
+    currencyUnit: "toman",
+    adminName: "مدیر کل سایت",
+    adminAvatar: "https://i.pravatar.cc/150?img=33"
+  };
+
+  try {
+    const raw = localStorage.getItem("irHesabdarSystemSettings");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : defaultSettings;
+    }
+  } catch (e) {
+    console.warn("admin: error loading settings", e);
+  }
+  localStorage.setItem("irHesabdarSystemSettings", JSON.stringify(defaultSettings));
+  return defaultSettings;
+}
+
 let currentAdminUserRole = "manager";
 
 
@@ -178,6 +202,93 @@ document.addEventListener("DOMContentLoaded", () => {
   initNotifications();
   initModals();
   initSearch();
+
+  // Populate System Settings from localStorage
+  const sysSettings = loadSystemSettings();
+
+  if (document.getElementById("setSupportEmail")) document.getElementById("setSupportEmail").value = sysSettings.supportEmail || "";
+  if (document.getElementById("setSupportPhone")) document.getElementById("setSupportPhone").value = sysSettings.supportPhone || "";
+  if (document.getElementById("setMaintenanceMode")) document.getElementById("setMaintenanceMode").checked = sysSettings.maintenanceMode || false;
+
+  if (document.getElementById("setMerchantId")) document.getElementById("setMerchantId").value = sysSettings.merchantId || "";
+  if (document.getElementById("setCurrencyUnit")) document.getElementById("setCurrencyUnit").value = sysSettings.currencyUnit || "toman";
+
+  if (document.getElementById("setAdminName")) document.getElementById("setAdminName").value = sysSettings.adminName || "";
+  if (document.getElementById("setAdminAvatar")) document.getElementById("setAdminAvatar").value = sysSettings.adminAvatar || "";
+
+  const sideName = document.getElementById("sidebarUserName");
+  const sideAvatar = document.getElementById("sidebarAvatar");
+  if (sideName && sysSettings.adminName) sideName.textContent = sysSettings.adminName;
+  if (sideAvatar && sysSettings.adminAvatar) sideAvatar.src = sysSettings.adminAvatar;
+
+  // 1. General Settings Form Submission
+  const settingsGeneralForm = document.getElementById("settingsGeneralForm");
+  if (settingsGeneralForm) {
+    settingsGeneralForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("setSupportEmail").value.trim();
+      const phone = document.getElementById("setSupportPhone").value.trim();
+      const maintenance = document.getElementById("setMaintenanceMode").checked;
+
+      const currentSettings = loadSystemSettings();
+      currentSettings.supportEmail = email;
+      currentSettings.supportPhone = phone;
+      currentSettings.maintenanceMode = maintenance;
+
+      localStorage.setItem("irHesabdarSystemSettings", JSON.stringify(currentSettings));
+      localStorage.setItem("irHesabdarMaintenanceMode", maintenance ? "true" : "false");
+
+      showToast("تنظیمات عمومی و پشتیبانی با موفقیت ذخیره شد.", "success");
+    });
+  }
+
+  // 2. Gateway Settings Form Submission
+  const settingsGatewayForm = document.getElementById("settingsGatewayForm");
+  if (settingsGatewayForm) {
+    settingsGatewayForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const merchant = document.getElementById("setMerchantId").value.trim();
+      const currency = document.getElementById("setCurrencyUnit").value;
+
+      const currentSettings = loadSystemSettings();
+      currentSettings.merchantId = merchant;
+      currentSettings.currencyUnit = currency;
+
+      localStorage.setItem("irHesabdarSystemSettings", JSON.stringify(currentSettings));
+      showToast("تنظیمات درگاه مالی با موفقیت ذخیره شد.", "success");
+    });
+  }
+
+  // 3. Admin Profile Settings Form Submission
+  const settingsAdminForm = document.getElementById("settingsAdminForm");
+  if (settingsAdminForm) {
+    settingsAdminForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("setAdminName").value.trim();
+      const avatar = document.getElementById("setAdminAvatar").value.trim();
+      const password = document.getElementById("setAdminPassword").value;
+
+      const currentSettings = loadSystemSettings();
+      currentSettings.adminName = name;
+      currentSettings.adminAvatar = avatar;
+
+      localStorage.setItem("irHesabdarSystemSettings", JSON.stringify(currentSettings));
+
+      // Live update sidebar display!
+      const sideNameEl = document.getElementById("sidebarUserName");
+      const sideAvatarEl = document.getElementById("sidebarAvatar");
+      if (sideNameEl) sideNameEl.textContent = name;
+      if (sideAvatarEl) sideAvatarEl.src = avatar;
+
+      if (password) {
+        localStorage.setItem("irHesabdarAdminPassword", password);
+        showToast("مشخصات و رمز عبور جدید مدیر کل با موفقیت ذخیره شد.", "success");
+        document.getElementById("setAdminPassword").value = "";
+      } else {
+        showToast("پروفایل مدیر کل با موفقیت به‌روزرسانی شد.", "success");
+      }
+    });
+  }
 
   // Handle direct hash navigation on page load
   const currentHash = window.location.hash;
