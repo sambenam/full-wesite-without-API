@@ -259,36 +259,61 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 3. Admin Profile Settings Form Submission
+  // 3. Admin Profile Settings Form Submission (With safety warning!)
   const settingsAdminForm = document.getElementById("settingsAdminForm");
   if (settingsAdminForm) {
     settingsAdminForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const name = document.getElementById("setAdminName").value.trim();
       const avatar = document.getElementById("setAdminAvatar").value.trim();
-      const password = document.getElementById("setAdminPassword").value;
+      const currentPassword = document.getElementById("setAdminCurrentPassword").value;
+      const newPassword = document.getElementById("setAdminPassword").value;
 
-      const currentSettings = loadSystemSettings();
-      currentSettings.adminName = name;
-      currentSettings.adminAvatar = avatar;
+      triggerSafetyWarning(`آیا از به‌روزرسانی مشخصات کاربری و ذخیره رمز عبور جدید خود اطمینان دارید؟`, () => {
+        const currentSettings = loadSystemSettings();
+        currentSettings.adminName = name;
+        currentSettings.adminAvatar = avatar;
 
-      localStorage.setItem("irHesabdarSystemSettings", JSON.stringify(currentSettings));
+        localStorage.setItem("irHesabdarSystemSettings", JSON.stringify(currentSettings));
 
-      // Live update sidebar display!
-      const sideNameEl = document.getElementById("sidebarUserName");
-      const sideAvatarEl = document.getElementById("sidebarAvatar");
-      if (sideNameEl) sideNameEl.textContent = name;
-      if (sideAvatarEl) sideAvatarEl.src = avatar;
+        // Live update sidebar display!
+        const sideNameEl = document.getElementById("sidebarUserName");
+        const sideAvatarEl = document.getElementById("sidebarAvatar");
+        if (sideNameEl) sideNameEl.textContent = name;
+        if (sideAvatarEl) sideAvatarEl.src = avatar;
 
-      if (password) {
-        localStorage.setItem("irHesabdarAdminPassword", password);
-        showToast("مشخصات و رمز عبور جدید مدیر کل با موفقیت ذخیره شد.", "success");
-        document.getElementById("setAdminPassword").value = "";
-      } else {
-        showToast("پروفایل مدیر کل با موفقیت به‌روزرسانی شد.", "success");
-      }
+        if (newPassword) {
+          localStorage.setItem("irHesabdarAdminPassword", newPassword);
+          showToast("مشخصات و رمز عبور جدید با موفقیت ذخیره شد.", "success");
+          document.getElementById("setAdminCurrentPassword").value = "";
+          document.getElementById("setAdminPassword").value = "";
+        } else {
+          showToast("پروفایل کاربری با موفقیت به‌روزرسانی شد.", "success");
+        }
+      });
     });
   }
+
+  // Bind password visibility eye icon toggles for settings page!
+  document.querySelectorAll(".toggle-password-settings").forEach(function(icon) {
+    icon.addEventListener("click", function() {
+      const targetId = icon.getAttribute("data-target");
+      const targetInput = document.getElementById(targetId);
+      if (targetInput) {
+        if (targetInput.type === "password") {
+          targetInput.type = "text";
+          icon.classList.remove("fa-eye");
+          icon.classList.add("fa-eye-slash");
+          icon.style.color = "var(--primary)";
+        } else {
+          targetInput.type = "password";
+          icon.classList.remove("fa-eye-slash");
+          icon.classList.add("fa-eye");
+          icon.style.color = "var(--text-secondary)";
+        }
+      }
+    });
+  });
 
   // Handle direct hash navigation on page load
   const currentHash = window.location.hash;
