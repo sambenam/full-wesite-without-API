@@ -290,6 +290,7 @@ function markStaffRecentlyUpdated(staffId, fields) {
     }
     if (recentlyUpdatedStaffId === staffId) recentlyUpdatedStaffId = null;
     delete recentStaffFieldChanges[staffId];
+    refreshStaffModalChangeCues(staffId);
     renderStaffTable();
   }, 8000);
 }
@@ -930,8 +931,13 @@ function renderStaffTable() {
     return user && staffRank[user.role] && [user.id, user.name, user.email, user.phone, user.role].join(" ").toLowerCase().includes(query);
   }).sort(function (a, b) { return staffRank[a.role] - staffRank[b.role]; });
   tbody.innerHTML = staff.map(function (user) {
-    const locked = currentAdminUserRole === "admin"; const updated = recentlyUpdatedStaffId === user.id; return `<tr class="${window.pendingStaffDeletion && window.pendingStaffDeletion.id === user.id ? 'user-pending-delete' : ''}"><td>#${toPersianDigits(user.id)}${updated ? '<span class="staff-update-dot staff-update-dot--between" title="تغییر جدید ثبت شده"></span>' : ''}</td><td style="font-weight:500;"><span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('name')) ? 'staff-field-changed' : ''}">${user.name}</span><span class="staff-role-badge ${staffRank[user.role] === 1 ? 'manager' : 'admin'}">${user.role}</span></td><td class="user-contact-cell"><span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('email')) ? 'staff-field-changed' : ''}">${user.email || '—'}</span></td><td class="user-contact-cell"><span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('phone')) ? 'staff-field-changed' : ''}">${toPersianDigits(user.phone || '—')}</span></td><td><span class="status ${user.status === 'فعال' ? 'success' : 'cancelled'}">${user.status}</span></td><td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;${locked?'opacity:.45;pointer-events:none;':''}" onclick="editStaff(${user.id})">بررسی و ویرایش</button></td></tr>`;
+    const locked = currentAdminUserRole === "admin"; const updated = recentlyUpdatedStaffId === user.id; return `<tr class="${window.pendingStaffDeletion && window.pendingStaffDeletion.id === user.id ? 'user-pending-delete' : ''}"><td>#${toPersianDigits(user.id)}</td><td style="font-weight:500;"><span class="staff-field-value">${user.name}</span><span class="staff-role-badge ${staffRank[user.role] === 1 ? 'manager' : 'admin'}">${user.role}</span></td><td class="user-contact-cell"><span class="staff-field-value">${user.email || '—'}</span></td><td class="user-contact-cell"><span class="staff-field-value">${toPersianDigits(user.phone || '—')}</span></td><td><span class="status ${user.status === 'فعال' ? 'success' : 'cancelled'}">${user.status}</span></td><td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;${locked?'opacity:.45;pointer-events:none;':''}" onclick="editStaff(${user.id})">بررسی و ویرایش</button></td></tr>`;
   }).join("") || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary);">مدیر یا ادمینی برای نمایش وجود ندارد.</td></tr>';
+}
+
+function refreshStaffModalChangeCues(id) {
+  const changed = recentStaffFieldChanges[id] || [];
+  document.querySelectorAll(".staff-modal-field-dot").forEach(function (dot) { dot.hidden = changed.indexOf(dot.getAttribute("data-staff-field")) === -1; });
 }
 
 function editStaff(id) {
@@ -945,11 +951,7 @@ function editStaff(id) {
   document.getElementById("staffEmailDisplay").textContent = staff.email || "—";
   document.getElementById("staffPhoneDisplay").textContent = toPersianDigits(staff.phone || "—");
   document.getElementById("editStaffStatus").value = staff.status || "فعال";
-  const hasUnreviewedChange = Boolean((recentStaffFieldChanges[id] || []).length);
-  const auditDot = document.getElementById("staffAuditUpdateDot");
-  if (auditDot) auditDot.hidden = !hasUnreviewedChange;
-  // Once the manager opens this record, move the cue from the list to the audit button.
-  if (recentlyUpdatedStaffId === id) { recentlyUpdatedStaffId = null; renderStaffTable(); }
+  refreshStaffModalChangeCues(id);
   openModal("editStaffModal");
 }
 function openStaffAuditModal() {

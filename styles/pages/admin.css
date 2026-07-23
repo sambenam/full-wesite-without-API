@@ -1495,3 +1495,5 @@ summary {
 .staff-field-value{display:inline-block}.staff-field-changed{border-bottom:2px solid rgba(239,68,68,.72);padding-bottom:3px;animation:staff-field-flash 1s infinite alternate}@keyframes staff-field-flash{to{border-bottom-color:rgba(239,68,68,.18);background:rgba(239,68,68,.045)}}
 /* Update dot sits in the visual gap between ID and name, and follows the audit button into the modal. */
 .staff-update-dot--between{float:left;margin:4px 0 0 2px}.staff-audit-trigger{justify-content:flex-start}.staff-audit-trigger span{flex:initial}.staff-audit-update-dot{margin:0 3px 0 0;width:8px;height:8px}.staff-audit-update-dot[hidden]{display:none}
+/* Profile-change cues are intentionally shown only inside the relevant staff edit sheet. */
+.staff-modal-field-dot{display:inline-block!important;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-right:5px;vertical-align:middle;animation:staff-dot-pulse 1s infinite alternate}.staff-modal-field-dot[hidden]{display:none!important}
