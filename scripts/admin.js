@@ -325,6 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Update dynamic dashboard counters and notification badges on load
   updateDashboardMetrics();
   updateOrdersNotifications();
+  updateSettingsLockout();
 
   console.log("🎉 پنل مدیریت کل با موفقیت بارگذاری و فعال شد.");
 });
@@ -376,6 +377,55 @@ function updateOrdersNotifications() {
   }
 }
 
+function updateSettingsLockout() {
+  const isLocked = currentAdminUserRole === "admin";
+  const settingsView = document.getElementById("view-settings");
+  if (!settingsView) return;
+
+  const inputs = settingsView.querySelectorAll("input, select, button");
+  inputs.forEach(function(el) {
+    if (isLocked) {
+      el.disabled = true;
+      el.style.opacity = "0.5";
+      el.style.cursor = "not-allowed";
+      if (el.tagName === "INPUT" || el.tagName === "SELECT") {
+        el.style.filter = "blur(3px)";
+      }
+    } else {
+      el.disabled = false;
+      el.style.opacity = "1";
+      el.style.cursor = "auto";
+      el.style.filter = "none";
+    }
+  });
+  
+  // Add warning banner inside settings page for Admin
+  let warningBanner = document.getElementById("settingsLockWarning");
+  if (isLocked) {
+    if (!warningBanner) {
+      warningBanner = document.createElement("div");
+      warningBanner.id = "settingsLockWarning";
+      warningBanner.className = "alert alert-error";
+      warningBanner.style.background = "rgba(255, 59, 48, 0.08)";
+      warningBanner.style.color = "#ff3b30";
+      warningBanner.style.border = "1px solid rgba(255, 59, 48, 0.15)";
+      warningBanner.style.padding = "12px";
+      warningBanner.style.borderRadius = "8px";
+      warningBanner.style.marginBottom = "1.5rem";
+      warningBanner.style.textAlign = "center";
+      warningBanner.style.fontWeight = "bold";
+      warningBanner.style.fontSize = "14px";
+      warningBanner.style.direction = "rtl";
+      warningBanner.innerHTML = `<i class="fas fa-lock" style="margin-left: 6px;"></i> دسترسی مسدود است: تغییر تنظیمات امنیتی، درگاه مالی و عمومی سیستم فقط مخصوص «مدیر کل سایت» می‌باشد.`;
+      settingsView.querySelector(".dashboard-content").insertBefore(warningBanner, settingsView.querySelector(".content-grid"));
+    }
+  } else {
+    if (warningBanner) {
+      warningBanner.remove();
+    }
+  }
+}
+
 // --- View Router & Navigation ---
 function switchView(viewName) {
   document.querySelectorAll(".admin-view").forEach((view) => {
@@ -409,6 +459,11 @@ function switchView(viewName) {
   // Dynamically trigger rendering of site content if the view is active
   if (viewName === "site-content" && typeof renderContentTable === "function") {
     renderContentTable();
+  }
+
+  // Handle settings lockout for Admins
+  if (viewName === "settings" && typeof updateSettingsLockout === "function") {
+    updateSettingsLockout();
   }
 }
 

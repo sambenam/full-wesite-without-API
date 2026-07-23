@@ -543,72 +543,79 @@
       <div id="view-settings" class="admin-view">
         <div class="dashboard-content">
           <div class="page-title">
-            <h1>تنظیمات کل پیشرفته سیستم</h1>
-            <p>پیکربندی پارامترهای عمومی، پشتیبانی، درگاه‌های مالی و مشخصات مدیر کل</p>
+            <h1>تنظیمات پیشرفته سایت</h1>
           </div>
-          <div class="content-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+          <div class="content-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; align-items: stretch; direction: rtl;">
             
             <!-- CARD 1: GENERAL & SUPPORT -->
-            <div class="glass-card">
-              <div class="card-header"><h2>⚙️ تنظیمات عمومی و پشتیبانی</h2></div>
-              <form id="settingsGeneralForm" style="text-align: right; direction: rtl;">
-                <div class="form-group" style="margin-bottom: 1rem;">
-                  <label>آدرس ایمیل پشتیبانی</label>
-                  <input type="email" id="setSupportEmail" class="form-control" value="support@irhesabdar.ir" required />
-                </div>
-                <div class="form-group" style="margin-bottom: 1rem;">
-                  <label>شماره تماس پشتیبانی</label>
-                  <input type="text" id="setSupportPhone" class="form-control" value="۰۹۱۲۳۴۵۶۷۸۹" required />
+            <div class="glass-card" style="min-height: 420px; display: flex; flex-direction: column; justify-content: space-between;">
+              <form id="settingsGeneralForm" style="text-align: right; direction: rtl; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+                <div>
+                  <div class="card-header" style="margin-bottom: 1rem;"><h2>⚙️ تنظیمات عمومی و پشتیبانی</h2></div>
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>آدرس ایمیل پشتیبانی</label>
+                    <input type="email" id="setSupportEmail" class="form-control" value="support@irhesabdar.ir" required />
+                  </div>
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>شماره تماس پشتیبانی</label>
+                    <input type="text" id="setSupportPhone" class="form-control" value="۰۹۱۲۳۴۵۶۷۸۹" required />
+                  </div>
+                  
+                  <!-- Maintenance Mode Slider -->
+                  <div style="background: rgba(255, 149, 0, 0.08); padding: 12px; border-radius: 10px; border: 1px solid rgba(255, 149, 0, 0.2); display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <span style="font-weight: bold; font-size: 13px; color: #fff;">🛠️ فعال‌سازی حالت تعمیرات سایت</span>
+                    <label class="content-editor_toggle" style="margin-bottom: 0;">
+                      <input type="checkbox" id="setMaintenanceMode" style="cursor: pointer; width: 18px; height: 18px;" />
+                    </label>
+                  </div>
                 </div>
                 
-                <!-- Maintenance Mode Slider -->
-                <div style="background: rgba(255,149,0,0.06); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,149,0,0.15); display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                  <span style="font-weight: bold; font-size: 13px; color: #fff;">🛠️ فعال‌سازی حالت تعمیرات سایت</span>
-                  <label class="content-editor_toggle" style="margin-bottom: 0;">
-                    <input type="checkbox" id="setMaintenanceMode" style="cursor: pointer; width: 18px; height: 18px;" />
-                  </label>
-                </div>
-                
-                <button type="submit" class="btn-primary" style="width: 100%;">ذخیره تنظیمات عمومی</button>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: auto; cursor: pointer;">ذخیره تنظیمات عمومی</button>
               </form>
             </div>
 
             <!-- CARD 2: GATEWAY SETTINGS -->
-            <div class="glass-card">
-              <div class="card-header"><h2>💳 تنظیمات درگاه مالی زرین‌پال</h2></div>
-              <form id="settingsGatewayForm" style="text-align: right; direction: rtl;">
-                <div class="form-group" style="margin-bottom: 1rem;">
-                  <label>کد مرچنت درگاه (Merchant ID)</label>
-                  <input type="text" id="setMerchantId" class="form-control" placeholder="مثال: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" value="e482da20-9bf3-482a-89a1-893f2dae89cf" required style="font-family: monospace;" />
+            <div class="glass-card" style="min-height: 420px; display: flex; flex-direction: column; justify-content: space-between;">
+              <form id="settingsGatewayForm" style="text-align: right; direction: rtl; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+                <div>
+                  <div class="card-header" style="margin-bottom: 1rem;"><h2>💳 تنظیمات درگاه مالی زرین‌پال</h2></div>
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>کد مرچنت درگاه (Merchant ID)</label>
+                    <input type="text" id="setMerchantId" class="form-control" placeholder="مثال: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" value="e482da20-9bf3-482a-89a1-893f2dae89cf" required style="font-family: monospace;" />
+                  </div>
+                  <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label>واحد پولی پیش‌فرض سایت</label>
+                    <select id="setCurrencyUnit" class="form-control select-dropdown" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1);">
+                      <option value="toman">تومان (پیش‌فرض)</option>
+                      <option value="rial">ریال ایران</option>
+                    </select>
+                  </div>
                 </div>
-                <div class="form-group" style="margin-bottom: 1.5rem;">
-                  <label>واحد پولی پیش‌فرض سایت</label>
-                  <select id="setCurrencyUnit" class="form-control select-dropdown" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1);">
-                    <option value="toman">تومان (پیش‌فرض)</option>
-                    <option value="rial">ریال ایران</option>
-                  </select>
-                </div>
-                <button type="submit" class="btn-primary" style="width: 100%;">ذخیره تنظیمات درگاه</button>
+                
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: auto; cursor: pointer;">ذخیره تنظیمات درگاه</button>
               </form>
             </div>
 
             <!-- CARD 3: ADMIN PROFILE & SECURITY -->
-            <div class="glass-card">
-              <div class="card-header"><h2>👑 اطلاعات کاربری و امنیت مدیر</h2></div>
-              <form id="settingsAdminForm" style="text-align: right; direction: rtl;">
-                <div class="form-group" style="margin-bottom: 1rem;">
-                  <label>نام نمایشی مدیر کل</label>
-                  <input type="text" id="setAdminName" class="form-control" value="مدیر کل سایت" required />
+            <div class="glass-card" style="min-height: 420px; display: flex; flex-direction: column; justify-content: space-between;">
+              <form id="settingsAdminForm" style="text-align: right; direction: rtl; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+                <div>
+                  <div class="card-header" style="margin-bottom: 1rem;"><h2>👑 اطلاعات کاربری و امنیت مدیر</h2></div>
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>نام نمایشی مدیر کل</label>
+                    <input type="text" id="setAdminName" class="form-control" value="مدیر کل سایت" required />
+                  </div>
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>لینک آواتار مدیر</label>
+                    <input type="text" id="setAdminAvatar" class="form-control" value="https://i.pravatar.cc/150?img=33" required />
+                  </div>
+                  <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label>رمز عبور جدید مدیر (ورود به پنل)</label>
+                    <input type="password" id="setAdminPassword" class="form-control" placeholder="جهت تغییر رمز عبور وارد کنید" />
+                  </div>
                 </div>
-                <div class="form-group" style="margin-bottom: 1rem;">
-                  <label>لینک آواتار پروفایل مدیر</label>
-                  <input type="text" id="setAdminAvatar" class="form-control" value="https://i.pravatar.cc/150?img=33" required />
-                </div>
-                <div class="form-group" style="margin-bottom: 1.5rem;">
-                  <label>رمز عبور جدید مدیر (جهت ورود به پنل)</label>
-                  <input type="password" id="setAdminPassword" class="form-control" placeholder="در صورت تمایل به تغییر رمز عبور وارد کنید" />
-                </div>
-                <button type="submit" class="btn-primary" style="width: 100%;">ذخیره امنیت و پروفایل</button>
+                
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: auto; cursor: pointer;">ذخیره امنیت و پروفایل</button>
               </form>
             </div>
 

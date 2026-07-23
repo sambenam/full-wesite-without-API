@@ -70,8 +70,7 @@
           <i class="fas fa-tools" style="font-size: 5rem; color: #ff9500; margin-bottom: 20px; animation: bounce 2s infinite;"></i>
           <h1 style="font-size: 2rem; font-weight: bold; margin-bottom: 10px;">🛠️ وب‌سایت در دست تعمیر و به‌روزرسانی است</h1>
           <p style="color: #94a3b8; max-width: 500px; line-height: 1.8; margin-bottom: 20px;">کاربر گرامی، ما در حال ارتقا و بهبود خدمات حسابیار هستیم. این فرآیند چند دقیقه بیشتر طول نخواهد کشید. از شکیبایی شما سپاسگزاریم.</p>
-          <div style="font-size: 13px; color: #64748b; margin-bottom: 30px;">پشتیبانی: support@irhesabdar.ir</div>
-          <a href="admin.html" style="background: rgba(255,255,255,0.08); color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; border: 1px solid rgba(255,255,255,0.15); font-weight: bold; font-size: 13px;">🔑 ورود به پنل مدیریت</a>
+          <div style="font-size: 13px; color: #64748b; margin-bottom: 10px;">پشتیبانی: support@irhesabdar.ir</div>
           
           <style>
             @keyframes bounce {
