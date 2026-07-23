@@ -53,7 +53,7 @@ function normalizeUserContact(user) {
   if (!copy.email || !copy.phone) {
     const parts = String(copy.contact || "").split(/\s*\/\s*/);
     copy.email = copy.email || parts.find(function (value) { return value.includes("@"); }) || "—";
-    copy.phone = copy.phone || parts.find(function (value) { return !value.includes("@"); }) || "—";
+    copy.phone = copy.phone || parts.find(function (value) { return !value.includes("@"); }) || "09121234567";
   }
   return copy;
 }

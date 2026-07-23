@@ -1449,3 +1449,8 @@ summary {
 .user-status-field { margin-bottom:16px; }.user-status-field select{width:100%;padding:10px;border-radius:9px}.user-delete-zone{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:14px;margin-bottom:16px;border:1px solid rgba(255,59,48,.22);background:rgba(255,59,48,.05);border-radius:12px}.user-delete-zone h4{margin:0 0 5px;color:var(--danger);font-size:13px}.user-delete-zone p{margin:0;color:var(--text-secondary);font-size:11px;line-height:1.7}.user-delete-zone button{white-space:nowrap;background:var(--danger);border:0;color:#fff;border-radius:8px;padding:9px 12px;font-weight:700;cursor:pointer}
 .user-pending-delete { outline:2px solid var(--danger); outline-offset:-2px; background:rgba(255,59,48,.10)!important; animation:user-delete-pulse 1s infinite alternate; }.user-pending-delete td{color:var(--danger)!important}.user-pending-delete-note{display:block;font-size:10px;font-weight:700;color:var(--danger);margin-top:4px}@keyframes user-delete-pulse{to{box-shadow:inset 0 0 0 999px rgba(255,59,48,.05)}}
 @media(max-width:560px){.user-readonly-grid{grid-template-columns:1fr}.user-delete-zone{align-items:flex-start;flex-direction:column}.user-delete-zone button{width:100%}}
+/* Keep user identity fields in a calm vertical reading flow. */
+.user-details-modal__header { justify-content: flex-start; min-height: 0; padding: 10px 16px; border-bottom: 0; background: transparent; }
+.user-details-modal__header .modal-close { margin-left: auto; }
+.user-readonly-grid { grid-template-columns: 1fr; }
+.user-identity-card { margin-top: 0; }

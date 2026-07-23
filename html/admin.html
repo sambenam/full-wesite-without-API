@@ -1008,14 +1008,13 @@
     <div class="modal-overlay" id="editUserModal">
       <div class="modal-box user-details-modal">
         <div class="modal-header user-details-modal__header">
-          <div><span class="user-details-modal__eyebrow">پرونده کاربر</span><h3>جزئیات و مدیریت حساب</h3></div>
-          <button class="modal-close" onclick="closeModal('editUserModal')"><i class="fas fa-times"></i></button>
+          <button class="modal-close" onclick="closeModal('editUserModal')" aria-label="بستن"><i class="fas fa-times"></i></button>
         </div>
         <form id="editUserForm">
           <input type="hidden" id="editUserId" />
           <section class="user-identity-card">
             <div class="user-identity-card__icon"><i class="fas fa-user"></i></div>
-            <div><strong id="userModalDisplayName">—</strong><span>اطلاعات هویتی فقط برای مشاهده</span></div>
+            <div><strong id="userModalDisplayName">—</strong></div>
           </section>
           <div class="user-readonly-grid">
             <div class="user-readonly-field"><label><i class="fas fa-fingerprint"></i> شناسه کاربر</label><output id="editUserIdDisplay">—</output></div>
