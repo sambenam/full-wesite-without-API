@@ -279,7 +279,7 @@ function applyStaffProfileChanges(staffId, changes) {
   const staff = appState.users.find(function (user) { return user && user.id === staffId; }); if (!staff) return;
   const labels = { name: "نام کاربری", email: "ایمیل", phone: "شماره تلفن همراه" }, changed = [];
   Object.keys(changes || {}).forEach(function (field) { const value = String(changes[field] || "").trim(); if (value && String(staff[field] || "") !== value) { const before = staff[field] || "—"; staff[field] = value; recordStaffChange(staffId, `${labels[field] || field} خود را از «${before}» به «${value}» تغییر داد.`); changed.push(field); } });
-  if (changed.length) { localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); markStaffRecentlyUpdated(staffId, changed); }
+  if (changed.length) { localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); if (staff.role === "ادمین") markStaffRecentlyUpdated(staffId, changed); }
 }
 window.applyStaffProfileChanges = applyStaffProfileChanges;
 
@@ -909,7 +909,7 @@ function renderStaffTable() {
     return user && staffRank[user.role] && [user.id, user.name, user.email, user.phone, user.role].join(" ").toLowerCase().includes(query);
   }).sort(function (a, b) { return staffRank[a.role] - staffRank[b.role]; });
   tbody.innerHTML = staff.map(function (user) {
-    const locked = currentAdminUserRole === "admin"; const updated = recentlyUpdatedStaffId === user.id; return `<tr class="${window.pendingStaffDeletion && window.pendingStaffDeletion.id === user.id ? 'user-pending-delete' : ''}"><td>#${toPersianDigits(user.id)}</td><td style="font-weight:500;">${updated ? '<span class="staff-update-dot" title="تغییر جدید ثبت شده"></span>' : ''}<span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('name')) ? 'staff-field-changed' : ''}">${user.name}</span><span class="staff-role-badge ${staffRank[user.role] === 1 ? 'manager' : 'admin'}">${user.role}</span></td><td class="user-contact-cell"><span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('email')) ? 'staff-field-changed' : ''}">${user.email || '—'}</span></td><td class="user-contact-cell"><span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('phone')) ? 'staff-field-changed' : ''}">${toPersianDigits(user.phone || '—')}</span></td><td><span class="status ${user.status === 'فعال' ? 'success' : 'cancelled'}">${user.status}</span></td><td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;${locked?'opacity:.45;pointer-events:none;':''}" onclick="editStaff(${user.id})">بررسی و ویرایش</button></td></tr>`;
+    const locked = currentAdminUserRole === "admin"; const updated = recentlyUpdatedStaffId === user.id; return `<tr class="${window.pendingStaffDeletion && window.pendingStaffDeletion.id === user.id ? 'user-pending-delete' : ''}"><td>#${toPersianDigits(user.id)}${updated ? '<span class="staff-update-dot staff-update-dot--between" title="تغییر جدید ثبت شده"></span>' : ''}</td><td style="font-weight:500;"><span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('name')) ? 'staff-field-changed' : ''}">${user.name}</span><span class="staff-role-badge ${staffRank[user.role] === 1 ? 'manager' : 'admin'}">${user.role}</span></td><td class="user-contact-cell"><span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('email')) ? 'staff-field-changed' : ''}">${user.email || '—'}</span></td><td class="user-contact-cell"><span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('phone')) ? 'staff-field-changed' : ''}">${toPersianDigits(user.phone || '—')}</span></td><td><span class="status ${user.status === 'فعال' ? 'success' : 'cancelled'}">${user.status}</span></td><td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;${locked?'opacity:.45;pointer-events:none;':''}" onclick="editStaff(${user.id})">بررسی و ویرایش</button></td></tr>`;
   }).join("") || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary);">مدیر یا ادمینی برای نمایش وجود ندارد.</td></tr>';
 }
 
@@ -924,6 +924,8 @@ function editStaff(id) {
   document.getElementById("staffEmailDisplay").textContent = staff.email || "—";
   document.getElementById("staffPhoneDisplay").textContent = toPersianDigits(staff.phone || "—");
   document.getElementById("editStaffStatus").value = staff.status || "فعال";
+  const auditDot = document.getElementById("staffAuditUpdateDot");
+  if (auditDot) auditDot.hidden = recentlyUpdatedStaffId !== id;
   openModal("editStaffModal");
 }
 function openStaffAuditModal() {
@@ -1536,7 +1538,7 @@ function initModals() {
   }
 
   const editStaffForm = document.getElementById("editStaffForm");
-  if (editStaffForm) editStaffForm.addEventListener("submit", function (e) { e.preventDefault(); const id = Number(document.getElementById("editStaffId").value), staff = appState.users.find(u => u.id === id), status = document.getElementById("editStaffStatus").value; if (!staff) return; triggerSafetyWarning(`آیا از تغییر وضعیت حساب «${staff.name}» اطمینان دارید؟`, function () { if (staff.status !== status) recordStaffChange(id, `وضعیت حساب را به «${status}» تغییر داد.`); staff.status = status; localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); renderStaffTable(); closeModal("editStaffModal"); showToast("وضعیت حساب به‌روزرسانی شد.", "success"); }); });
+  if (editStaffForm) editStaffForm.addEventListener("submit", function (e) { e.preventDefault(); const id = Number(document.getElementById("editStaffId").value), staff = appState.users.find(u => u.id === id), status = document.getElementById("editStaffStatus").value; if (!staff) return; triggerSafetyWarning(`آیا از تغییر وضعیت حساب «${staff.name}» اطمینان دارید؟`, function () { staff.status = status; localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); renderStaffTable(); closeModal("editStaffModal"); showToast("وضعیت حساب به‌روزرسانی شد.", "success"); }); });
   document.getElementById("deleteStaffBtn")?.addEventListener("click", function () { const id = Number(document.getElementById("editStaffId").value), staff = appState.users.find(u => u.id === id); if (!staff) return; triggerSafetyWarning(`⚠️ آیا از حذف حساب «${staff.name}» مطمئن هستید؟`, function () { window.pendingStaffDeletion = { id }; closeModal("editStaffModal"); switchView("staff"); renderStaffTable(); showToast("حساب برای ۱۰ ثانیه با هشدار قرمز نمایش داده می‌شود.", "error"); setTimeout(function(){ appState.users = appState.users.filter(u=>u.id!==id); localStorage.setItem("irHesabdarUsers",JSON.stringify(appState.users)); window.pendingStaffDeletion=null; renderStaffTable(); showToast("حساب از فهرست حذف شد.","success");},10000); }); });
 
   // Bind radio button listeners for product access type
