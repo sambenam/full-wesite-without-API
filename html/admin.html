@@ -290,9 +290,6 @@
                 >
                   <i class="fas fa-plus"></i><span>افزودن محصول</span>
                 </button>
-                <button class="action-btn" onclick="openModal('addUserModal')">
-                  <i class="fas fa-user-plus"></i><span>افزودن کاربر</span>
-                </button>
                 <button
                   class="action-btn"
                   onclick="showToast('فاکتور جدید ایجاد شد', 'success')"
@@ -429,9 +426,6 @@
               <h1>مدیریت کاربران</h1>
               <p>لیست کامل کاربران و مدیریت دسترسی‌ها</p>
             </div>
-            <button class="btn-primary" onclick="openModal('addUserModal')">
-              <i class="fas fa-user-plus"></i> افزودن کاربر
-            </button>
           </div>
           <div class="glass-card">
             <div class="card-header">
@@ -450,8 +444,8 @@
                   <tr>
                     <th>شناسه</th>
                     <th>نام</th>
-                    <th>ایمیل / موبایل</th>
-                    <th>نقش</th>
+                    <th>ایمیل</th>
+                    <th>تلفن همراه</th>
                     <th>وضعیت</th>
                     <th>عملیات</th>
                   </tr>
@@ -1010,58 +1004,40 @@
       </div>
     </div>
 
-    <!-- MODAL: EDIT USER DETAILS -->
+    <!-- MODAL: USER DETAILS -->
     <div class="modal-overlay" id="editUserModal">
-      <div class="modal-box" style="max-width: 480px;">
-        <div class="modal-header">
-          <h3>ویرایش و مدیریت کاربر</h3>
-          <button class="modal-close" onclick="closeModal('editUserModal')">
-            <i class="fas fa-times"></i>
-          </button>
+      <div class="modal-box user-details-modal">
+        <div class="modal-header user-details-modal__header">
+          <div><span class="user-details-modal__eyebrow">پرونده کاربر</span><h3>جزئیات و مدیریت حساب</h3></div>
+          <button class="modal-close" onclick="closeModal('editUserModal')"><i class="fas fa-times"></i></button>
         </div>
         <form id="editUserForm">
           <input type="hidden" id="editUserId" />
-          
-          <div class="form-group" style="margin-bottom: 1rem; text-align: right;">
-            <label>نام و نام خانوادگی</label>
-            <input type="text" id="editUserName" class="form-control" required style="width: 100%;" />
+          <section class="user-identity-card">
+            <div class="user-identity-card__icon"><i class="fas fa-user"></i></div>
+            <div><strong id="userModalDisplayName">—</strong><span>اطلاعات هویتی فقط برای مشاهده</span></div>
+          </section>
+          <div class="user-readonly-grid">
+            <div class="user-readonly-field"><label><i class="fas fa-fingerprint"></i> شناسه کاربر</label><output id="editUserIdDisplay">—</output></div>
+            <div class="user-readonly-field"><label><i class="fas fa-user"></i> نام کاربر</label><output id="editUserNameDisplay">—</output></div>
+            <div class="user-readonly-field"><label><i class="fas fa-envelope"></i> ایمیل</label><output id="editUserEmailDisplay" dir="ltr">—</output></div>
+            <div class="user-readonly-field"><label><i class="fas fa-phone"></i> تلفن همراه</label><output id="editUserPhoneDisplay" dir="ltr">—</output></div>
           </div>
-
-          <div class="form-group" style="margin-bottom: 1rem; text-align: right;">
-            <label>نقش کاربری</label>
-            <select id="editUserRole" class="form-control select-dropdown" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1);">
-              <option value="کاربر عادی">کاربر عادی</option>
-              <option value="ادمین">ادمین</option>
-              <option value="مدیر سایت">مدیر سایت</option>
-            </select>
-          </div>
-
-          <div class="form-group" style="margin-bottom: 1.5rem; text-align: right;">
+          <details class="user-orders-accordion" id="userOrdersAccordion">
+            <summary><span><i class="fas fa-shopping-bag"></i> سفارشات این کاربر</span><span class="user-orders-accordion__hint" id="userOrdersCount">برای مشاهده کلیک کنید</span><i class="fas fa-chevron-down"></i></summary>
+            <div class="user-orders-list" id="userOrdersList"></div>
+          </details>
+          <div class="form-group user-status-field">
             <label>وضعیت حساب کاربری</label>
-            <select id="editUserStatus" class="form-control select-dropdown" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1);">
-              <option value="فعال">🟢 فعال</option>
-              <option value="غیرفعال">⚪ غیرفعال</option>
-              <option value="بلاک شده">🔴 مسدود شده (بلاک)</option>
+            <select id="editUserStatus" class="form-control select-dropdown">
+              <option value="فعال">🟢 فعال</option><option value="غیرفعال">⚪ غیرفعال</option><option value="بلاک شده">🔴 مسدود شده (بلاک)</option>
             </select>
           </div>
-
-          <!-- Highly Visible Delete Button Inside Modal -->
-          <div style="background: rgba(255, 59, 48, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 59, 48, 0.15); margin-bottom: 1.5rem; text-align: center;">
-            <h4 style="color: var(--danger); margin-bottom: 6px; font-size: 14px;"><i class="fas fa-trash-alt"></i> حذف دائمی حساب کاربری</h4>
-            <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">با حذف کاربر، کلیه سوابق خرید و دسترسی‌های او برای همیشه پاک خواهد شد.</p>
-            <button type="button" class="btn-primary" id="deleteUserFromEditBtn" style="background: var(--danger); border-color: var(--danger); padding: 8px 16px; font-size: 13px; border-radius: 6px; cursor: pointer; font-weight: bold; border: none; display: inline-flex; align-items: center; gap: 6px; color: #fff;">🗑️ حذف کاربر</button>
-          </div>
-
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn-secondary"
-              onclick="closeModal('editUserModal')"
-            >
-              انصراف
-            </button>
-            <button type="submit" class="btn-primary">ثبت تغییرات</button>
-          </div>
+          <section class="user-delete-zone">
+            <div><h4><i class="fas fa-trash-alt"></i> حذف حساب کاربری</h4><p>پس از تأیید، کاربر برای ۱۰ ثانیه در لیست با هشدار قرمز نمایش داده می‌شود و سپس حذف خواهد شد.</p></div>
+            <button type="button" id="deleteUserFromEditBtn"><i class="fas fa-trash"></i> حذف کاربر</button>
+          </section>
+          <div class="modal-footer"><button type="button" class="btn-secondary" onclick="closeModal('editUserModal')">بستن</button><button type="submit" class="btn-primary">ذخیره وضعیت</button></div>
         </form>
       </div>
     </div>

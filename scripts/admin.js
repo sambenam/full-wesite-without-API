@@ -43,19 +43,29 @@ function loadDynamicOrders() {
 }
 
 const initialUsers = [
-  { id: 1, name: "سام به‌نام", contact: "sam@example.com", role: "مدیر سایت", status: "فعال" },
-  { id: 2, name: "محمد رضایی", contact: "mohammad@example.com", role: "ادمین", status: "فعال" },
-  { id: 3, name: "علی احمدی", contact: "ali@example.com", role: "کاربر عادی", status: "فعال" },
-  { id: 4, name: "سارا محمدی", contact: "sara@example.com", role: "کاربر عادی", status: "فعال" },
-  { id: 5, name: "زهرا کریمی", contact: "zahra@example.com", role: "کاربر عادی", status: "غیرفعال" }
+  { id: 3, name: "علی احمدی", email: "ali@example.com", phone: "09121234567", role: "کاربر عادی", status: "فعال" },
+  { id: 4, name: "سارا محمدی", email: "sara@example.com", phone: "09129876543", role: "کاربر عادی", status: "فعال" },
+  { id: 5, name: "زهرا کریمی", email: "zahra@example.com", phone: "09123456789", role: "کاربر عادی", status: "غیرفعال" }
 ];
+
+function normalizeUserContact(user) {
+  const copy = Object.assign({}, user);
+  if (!copy.email || !copy.phone) {
+    const parts = String(copy.contact || "").split(/\s*\/\s*/);
+    copy.email = copy.email || parts.find(function (value) { return value.includes("@"); }) || "—";
+    copy.phone = copy.phone || parts.find(function (value) { return !value.includes("@"); }) || "—";
+  }
+  return copy;
+}
 
 function loadDynamicUsers() {
   try {
     const raw = localStorage.getItem("irHesabdarUsers");
     if (raw) {
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : initialUsers;
+      if (Array.isArray(parsed)) {
+        return parsed.filter(Boolean).map(normalizeUserContact);
+      }
     }
   } catch (e) {
     console.warn("admin: error loading users", e);
@@ -842,80 +852,22 @@ function renderDashboardProducts() {
 function renderUsersTable() {
   const tbody = document.querySelector("#usersManageTable tbody");
   if (!tbody) return;
-
   const searchQuery = document.getElementById("userTableSearch") ? document.getElementById("userTableSearch").value.trim().toLowerCase() : "";
-  
-  const roleOrder = {
-    "مدیر سایت": 1,
-    "مدیر سیستم": 1,
-    "ادمین": 2,
-    "مدیر فروش": 2,
-    "پشتیبان": 2,
-    "مشتری VIP": 3,
-    "مشتری عادی": 3,
-    "کاربر عادی": 3
-  };
-
-  // Sort: Managers first, then Admins, then Users last
-  const sortedUsers = [...appState.users].sort((a, b) => {
-    const orderA = roleOrder[a.role] || 99;
-    const orderB = roleOrder[b.role] || 99;
-    return orderA - orderB;
+  const pendingDeletion = window.pendingUserDeletion || null;
+  const users = appState.users.filter(function (user) {
+    return user && user.role === "کاربر عادی" && [user.name, user.email, user.phone, user.id].join(" ").toLowerCase().includes(searchQuery);
   });
-
-  const filteredUsers = sortedUsers.filter(u => {
-    return u && (
-           String(u.name || "").toLowerCase().includes(searchQuery) ||
-           String(u.role || "").toLowerCase().includes(searchQuery) ||
-           String(u.contact || "").toLowerCase().includes(searchQuery)
-    );
-  });
-
-  const isLocked = currentAdminUserRole === "admin";
-
-  // Lock or unlock "Add User" button in the view header
-  const addUserHeaderBtn = document.querySelector('#view-users .page-title .btn-primary');
-  if (addUserHeaderBtn) {
-    if (isLocked) {
-      addUserHeaderBtn.style.opacity = "0.5";
-      addUserHeaderBtn.style.pointerEvents = "none";
-      addUserHeaderBtn.title = "افزودن کاربر مخصوص مدیر کل می‌باشد";
-    } else {
-      addUserHeaderBtn.style.opacity = "1";
-      addUserHeaderBtn.style.pointerEvents = "auto";
-      addUserHeaderBtn.title = "افزودن کاربر جدید";
-    }
-  }
-
-  tbody.innerHTML = filteredUsers
-    .map(
-      (user) => {
-        // Blur contact details if locked (role is admin)
-        const contactStyle = isLocked ? 'filter: blur(5px); select: none; pointer-events: none; user-select: none;' : '';
-        const contactTitle = isLocked ? 'title="اطلاعات حساس - مخصوص مدیر کل"' : '';
-        const contactText = isLocked ? "•••••••••••••••••" : user.contact;
-
-        // Faded styles for operations if locked
-        const actionStyle = isLocked ? 'opacity: 0.4; pointer-events: none; cursor: not-allowed;' : '';
-        const actionTitle = isLocked ? 'title="عملیات مدیریت مخصوص مدیر کل می‌باشد"' : '';
-
-        return `
-          <tr>
-              <td>#${toPersianDigits(user.id)}</td>
-              <td style="font-weight: 500;">${user.name}</td>
-              <td ${contactTitle} style="${contactStyle}">${contactText}</td>
-              <td><span class="status pending" style="background: rgba(0, 122, 255, 0.08); color: var(--primary); font-size: 11px; font-weight: bold; border-radius: 6px; padding: 4px 8px;">${user.role}</span></td>
-              <td><span class="status ${user.status === "فعال" ? "success" : "cancelled"}">${user.status}</span></td>
-              <td>
-                  <button class="btn-secondary" style="padding: 6px 14px; font-size: 12px; cursor: pointer; border-radius: 8px; ${actionStyle}" ${actionTitle} onclick="editUser(${user.id})">بررسی و ویرایش</button>
-              </td>
-          </tr>
-        `;
-      }
-    )
-    .join("");
+  tbody.innerHTML = users.map(function (user) {
+    const isPending = pendingDeletion && pendingDeletion.id === user.id;
+    return `<tr class="${isPending ? "user-pending-delete" : ""}">
+      <td>#${toPersianDigits(user.id)}</td>
+      <td style="font-weight:500;">${user.name}${isPending ? '<span class="user-pending-delete-note"><i class="fas fa-exclamation-circle"></i> این کاربر حذف شده و تا چند ثانیه دیگر از لیست خارج می‌شود</span>' : ''}</td>
+      <td dir="ltr">${user.email || "—"}</td><td dir="ltr">${toPersianDigits(user.phone || "—")}</td>
+      <td><span class="status ${user.status === "فعال" ? "success" : "cancelled"}">${user.status}</span></td>
+      <td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;" onclick="editUser(${user.id})" ${isPending ? "disabled" : ""}>بررسی و ویرایش</button></td>
+    </tr>`;
+  }).join("") || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary);">کاربر عادی برای نمایش وجود ندارد.</td></tr>';
 }
-
 function renderProductsTable() {
   const tbody = document.querySelector("#productsManageTable tbody");
   if (!tbody) return;
@@ -1477,15 +1429,12 @@ function initModals() {
       e.preventDefault();
       
       const id = parseInt(document.getElementById("editUserId").value);
-      const name = document.getElementById("editUserName").value.trim();
-      const role = document.getElementById("editUserRole").value;
+      const userForEdit = appState.users.find(u => u.id === id);
+      const name = userForEdit ? userForEdit.name : "کاربر";
       const status = document.getElementById("editUserStatus").value;
-
-      triggerSafetyWarning(`آیا از ثبت نهایی تغییرات کاربر «${name}» اطمینان دارید؟`, () => {
+      triggerSafetyWarning(`آیا از ثبت نهایی تغییرات وضعیت کاربر «${name}» اطمینان دارید؟`, () => {
         const user = appState.users.find(u => u.id === id);
         if (user) {
-          user.name = name;
-          user.role = role;
           user.status = status;
           localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
           renderUsersTable();
@@ -1505,11 +1454,18 @@ function initModals() {
       if (!user) return;
 
       triggerSafetyWarning(`⚠️ هشدار جدی: آیا از حذف دائمی کاربر «${user.name}» از دیتابیس کل سیستم مطمئن هستید؟`, () => {
-        appState.users = appState.users.filter(u => u.id !== id);
-        localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
-        renderUsersTable();
+        window.pendingUserDeletion = { id: id };
         closeModal("editUserModal");
-        showToast("حساب کاربری برای همیشه از کل دیتابیس حذف شد.", "error");
+        switchView("users");
+        renderUsersTable();
+        showToast("کاربر حذف شد؛ ردیف قرمز تا ۱۰ ثانیه دیگر از لیست خارج می‌شود.", "error");
+        setTimeout(function () {
+          appState.users = appState.users.filter(function (u) { return u.id !== id; });
+          localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
+          window.pendingUserDeletion = null;
+          renderUsersTable();
+          showToast("کاربر از فهرست کاربران حذف شد.", "success");
+        }, 10000);
       });
     });
   }
@@ -1685,22 +1641,32 @@ function deleteUser(id) {
 }
 
 function editUser(id) {
-  if (currentAdminUserRole === "admin") {
-    showToast("خطا: شما دسترسی لازم برای ویرایش کاربران را ندارید.", "error");
-    return;
-  }
-
-  const user = appState.users.find((u) => u.id === id);
-  if (user) {
-    document.getElementById("editUserId").value = id;
-    document.getElementById("editUserName").value = user.name || "";
-    document.getElementById("editUserRole").value = user.role || "کاربر عادی";
-    document.getElementById("editUserStatus").value = user.status || "فعال";
-    
-    openModal("editUserModal");
-  }
+  const user = appState.users.find(function (u) { return u.id === id && u.role === "کاربر عادی"; });
+  if (!user) return;
+  document.getElementById("editUserId").value = id;
+  document.getElementById("userModalDisplayName").textContent = user.name || "—";
+  document.getElementById("editUserIdDisplay").textContent = "#" + toPersianDigits(user.id);
+  document.getElementById("editUserNameDisplay").textContent = user.name || "—";
+  document.getElementById("editUserEmailDisplay").textContent = user.email || "—";
+  document.getElementById("editUserPhoneDisplay").textContent = toPersianDigits(user.phone || "—");
+  document.getElementById("editUserStatus").value = user.status || "فعال";
+  renderUserOrders(user);
+  openModal("editUserModal");
 }
 
+function renderUserOrders(user) {
+  const list = document.getElementById("userOrdersList");
+  const count = document.getElementById("userOrdersCount");
+  if (!list || !count) return;
+  const orders = appState.orders.filter(function (order) {
+    return String(order.customer || "").trim() === String(user.name || "").trim() ||
+      (order.buyerEmail && String(order.buyerEmail).toLowerCase() === String(user.email).toLowerCase());
+  });
+  count.textContent = orders.length ? toPersianDigits(orders.length) + " سفارش · برای مشاهده کلیک کنید" : "سفارشی ثبت نشده است";
+  list.innerHTML = orders.length ? orders.map(function (order) {
+    return `<article class="user-order-item"><div class="user-order-item__top"><span>${order.id}</span><span class="status ${order.status}">${getStatusText(order.status)}</span></div><p>${order.product || "محصول"}</p><div class="user-order-item__meta"><span>${toPersianDigits(order.date || "—")}</span><strong>${toPersianDigits(order.amount || "—")}</strong></div></article>`;
+  }).join("") : '<p style="text-align:center;color:var(--text-secondary);font-size:12px;padding:10px 0;margin:0;">هنوز سفارشی برای این کاربر ثبت نشده است.</p>';
+}
 function deleteProduct(id) {
   if (confirm("آیا از حذف این محصول اطمینان دارید؟")) {
     const prod = appState.products.find((p) => p && p.id && String(p.id) === String(id));
