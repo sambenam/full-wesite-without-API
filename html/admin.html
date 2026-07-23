@@ -718,21 +718,21 @@
 
           <!-- KPI Cards for Financial Metrics -->
           <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
-            <div class="stat-card">
+            <div class="stat-card" onclick="focusRevenueChart()" style="cursor: pointer;" title="جهت اسکرول به نمودار فروش کلیک کنید">
               <div class="stat-icon green"><i class="fas fa-calculator"></i></div>
               <div class="stat-info">
                 <h3 id="set-analytics-avg">۰ تومان</h3>
                 <p>میانگین مبلغ هر خرید</p>
               </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" onclick="jumpToCancelledOrders()" style="cursor: pointer;" title="جهت بررسی سفارشات لغو شده کلیک کنید">
               <div class="stat-icon red"><i class="fas fa-ban"></i></div>
               <div class="stat-info">
                 <h3 id="set-analytics-cancel">۰٪</h3>
                 <p>نرخ لغو سفارشات</p>
               </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" onclick="switchView('products')" style="cursor: pointer;" title="جهت ورود به مدیریت محصولات کلیک کنید">
               <div class="stat-icon blue"><i class="fas fa-graduation-cap"></i></div>
               <div class="stat-info">
                 <h3 id="set-analytics-products">۰ عدد</h3>
@@ -744,7 +744,7 @@
           <div class="content-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; align-items: stretch;">
             
             <!-- Live Monthly Revenue Chart -->
-            <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div class="glass-card" onclick="openExpandedChartModal()" style="display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;" title="جهت مشاهده جزئیات بزرگتر و سالانه کلیک کنید">
               <div class="card-header"><h2>📊 نمودار فروش ماهیانه (تومان)</h2></div>
               <div class="stats-chart" style="height: 250px; display: flex; align-items: flex-end; justify-content: center; margin-top: 20px;">
                 <div class="chart-bars" id="dynamicChartBars" style="height: 220px; display: flex; align-items: flex-end; gap: 20px; width: 100%; justify-content: space-around;">
@@ -754,7 +754,7 @@
             </div>
 
             <!-- Bestselling Products Progress List -->
-            <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div class="glass-card" onclick="openExpandedBestsellersModal()" style="display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;" title="جهت مشاهده لیست کامل و بزرگتر کلیک کنید">
               <div class="card-header" style="margin-bottom: 12px;"><h2>🏆 دوره‌ها و فایل‌های پرفروش</h2></div>
               <div id="bestsellingProductsContainer" style="display: flex; flex-direction: column; gap: 14px; text-align: right; direction: rtl; justify-content: center; height: 100%;">
                 <!-- Rendered dynamically by JS -->
@@ -1394,6 +1394,48 @@
             onclick="closeModal('orderDetailModal')"
           >
             تایید و بستن صفحه
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: EXPANDED MONTHLY CHART -->
+    <div class="modal-overlay" id="expandedChartModal">
+      <div class="modal-box modal-box--wide">
+        <div class="modal-header">
+          <h3>📊 نمودار پیشرفته فروش سالانه (تفکیک ۱۲ ماه)</h3>
+          <button class="modal-close" onclick="closeModal('expandedChartModal')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem; text-align: center; direction: rtl;">
+          <div class="stats-chart" style="height: 320px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 1.5rem; background: rgba(255,255,255,0.01); border-radius: 12px; padding: 10px;">
+            <div class="chart-bars" id="expandedChartBars" style="height: 280px; display: flex; align-items: flex-end; gap: 12px; width: 100%; justify-content: space-around;">
+              <!-- Populated dynamically with all 12 months -->
+            </div>
+          </div>
+          <button type="button" class="btn-primary" onclick="downloadDetailedRevenueReport()" style="background: #10b981; border-color: #10b981; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fas fa-file-excel"></i> دانلود گزارش فروش ۱۲ ماهه (Excel)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: EXPANDED BESTSELLERS -->
+    <div class="modal-overlay" id="expandedBestsellersModal">
+      <div class="modal-box" style="max-width: 600px;">
+        <div class="modal-header">
+          <h3>🏆 لیست کامل دوره‌ها و فایل‌های پرفروش</h3>
+          <button class="modal-close" onclick="closeModal('expandedBestsellersModal')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem; text-align: right; direction: rtl;">
+          <div id="expandedBestsellersList" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 1.5rem; max-height: 380px; overflow-y: auto; padding-right: 5px;">
+            <!-- Populated dynamically with all products -->
+          </div>
+          <button type="button" class="btn-primary" onclick="downloadDetailedBestsellersReport()" style="background: #10b981; border-color: #10b981; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fas fa-file-excel"></i> دانلود گزارش کامل پرفروش‌ترین‌ها (Excel)
           </button>
         </div>
       </div>

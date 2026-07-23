@@ -430,6 +430,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof renderAnalyticsView === "function") {
     renderAnalyticsView();
   }
+  if (typeof renderAnalyticsView === "function") {
+    renderAnalyticsView();
+  }
 
   console.log("🎉 پنل مدیریت کل با موفقیت بارگذاری و فعال شد.");
 });
@@ -569,6 +572,11 @@ function switchView(viewName) {
   // Handle settings lockout for Admins
   if (viewName === "settings" && typeof updateSettingsLockout === "function") {
     updateSettingsLockout();
+  }
+
+  // Handle rendering of Analytics View
+  if (viewName === "analytics" && typeof renderAnalyticsView === "function") {
+    renderAnalyticsView();
   }
 
   // Handle rendering of Analytics View
@@ -1440,4 +1448,328 @@ function initSearch() {
         });
     });
   }
+}
+
+
+// --- ADVANCED DYNAMIC ANALYTICS SYSTEM ---
+
+function renderAnalyticsView() {
+  const chartContainer = document.getElementById("dynamicChartBars");
+  const productsContainer = document.getElementById("bestsellingProductsContainer");
+  const avgEl = document.getElementById("set-analytics-avg");
+  const cancelEl = document.getElementById("set-analytics-cancel");
+  const prodCountEl = document.getElementById("set-analytics-products");
+
+  if (!chartContainer || !productsContainer) return;
+
+  // 1. Calculate KPI Metrics
+  const totalOrders = appState.orders.length;
+  const successfulOrders = appState.orders.filter(o => o.status === "success");
+  const cancelledOrders = appState.orders.filter(o => o.status === "cancelled" || o.status === "failed");
+
+  // A. Average Basket Value
+  const totalRev = successfulOrders.reduce((sum, o) => {
+    const cleanNum = parseFloat(String(o.amount || "").replace(/[^d.]/g, ""));
+    return sum + (isNaN(cleanNum) ? 0 : cleanNum);
+  }, 0);
+  const avgValue = successfulOrders.length > 0 ? Math.round(totalRev / successfulOrders.length) : 0;
+  if (avgEl) avgEl.textContent = toPersianDigits(avgValue.toLocaleString()) + " تومان";
+
+  // B. Cancellation Rate
+  const cancelRate = totalOrders > 0 ? Math.round((cancelledOrders.length / totalOrders) * 100) : 0;
+  if (cancelEl) cancelEl.textContent = toPersianDigits(cancelRate) + "٪";
+
+  // C. Total Products Count
+  const totalProdsCount = appState.products.length;
+  if (prodCountEl) prodCountEl.textContent = toPersianDigits(totalProdsCount) + " عدد";
+
+
+  // 2. Render Monthly Revenue Chart (Compact 5 Months View)
+  const months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+  const revenueByMonth = {};
+  months.forEach(m => { revenueByMonth[m] = 0; });
+
+  successfulOrders.forEach(order => {
+    const dateStr = order.date || "";
+    const parts = dateStr.split("/");
+    if (parts.length >= 2) {
+      const monthIdx = parseInt(parts[1]) - 1;
+      if (monthIdx >= 0 && monthIdx < 12) {
+        const mName = months[monthIdx];
+        const cleanNum = parseFloat(String(order.amount || "").replace(/[^d.]/g, ""));
+        revenueByMonth[mName] += (isNaN(cleanNum) ? 0 : cleanNum);
+      }
+    }
+  });
+
+  let maxRevenue = 0;
+  months.forEach(m => {
+    if (revenueByMonth[m] > maxRevenue) maxRevenue = revenueByMonth[m];
+  });
+  if (maxRevenue === 0) maxRevenue = 100000;
+
+  const activeMonths = months.filter(m => revenueByMonth[m] > 0);
+  const monthsToRender = activeMonths.length >= 3 ? activeMonths : months.slice(0, 5);
+
+  chartContainer.innerHTML = monthsToRender.map(mName => {
+    const rev = revenueByMonth[mName];
+    const heightPercent = Math.round((rev / maxRevenue) * 100);
+    const heightStyle = Math.max(heightPercent, 5);
+    return `
+      <div class="chart-bar-item" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%;" title="فروش ${mName}: ${rev.toLocaleString()} تومان">
+        <span style="font-size: 11px; font-weight: bold; color: var(--success); margin-bottom: 5px;">${rev > 0 ? toPersianDigits(Math.round(rev/1000) + "K") : "۰"}</span>
+        <div class="chart-bar" style="height: ${heightStyle}%; width: 35px; background: linear-gradient(180deg, var(--primary) 0%, rgba(0,122,255,0.4) 100%); border-radius: 6px 6px 0 0; transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+        <span style="font-size: 12px; color: var(--text-primary); margin-top: 8px;">${mName}</span>
+      </div>
+    `;
+  }).join("");
+
+
+  // 3. Render Bestselling Products (Compact 4 Items View)
+  const salesByProduct = {};
+  successfulOrders.forEach(order => {
+    const pName = order.product;
+    if (pName) {
+      if (!salesByProduct[pName]) {
+        salesByProduct[pName] = { count: 0, revenue: 0 };
+      }
+      salesByProduct[pName].count++;
+      const cleanNum = parseFloat(String(order.amount || "").replace(/[^d.]/g, ""));
+      salesByProduct[pName].revenue += (isNaN(cleanNum) ? 0 : cleanNum);
+    }
+  });
+
+  const sortedProds = Object.keys(salesByProduct).map(pName => {
+    return {
+      name: pName,
+      count: salesByProduct[pName].count,
+      revenue: salesByProduct[pName].revenue
+    };
+  }).sort((a, b) => b.count - a.count);
+
+  if (sortedProds.length === 0) {
+    productsContainer.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 2rem;">هنوز تراکنش موفقی ثبت نشده است.</p>`;
+    return;
+  }
+
+  const maxSalesCount = sortedProds[0].count || 1;
+
+  productsContainer.innerHTML = sortedProds.slice(0, 4).map(p => {
+    const percent = Math.round((p.count / maxSalesCount) * 100);
+    return `
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 500;">
+          <span style="color: var(--text-primary); font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px;">${p.name}</span>
+          <span style="color: var(--success); font-weight: bold;">${toPersianDigits(p.count)} فروش (${toPersianDigits(p.revenue.toLocaleString())} تومان)</span>
+        </div>
+        <div style="height: 8px; width: 100%; background: rgba(0,0,0,0.05); border-radius: 4px; overflow: hidden;">
+          <div style="height: 100%; width: ${percent}%; background: linear-gradient(90deg, var(--primary) 0%, #34c759 100%); border-radius: 4px; transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// --- EXPANDED ANALYTICS AND PORTAL JUMPERS ---
+
+function focusRevenueChart() {
+  const chartCard = document.querySelector("#view-analytics .content-grid .glass-card");
+  if (chartCard) {
+    chartCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    chartCard.style.outline = "2px solid var(--primary)";
+    setTimeout(() => { chartCard.style.outline = "none"; }, 1500);
+  }
+}
+
+function jumpToCancelledOrders() {
+  switchView("orders");
+  const filter = document.getElementById("orderStatusFilter");
+  if (filter) {
+    filter.value = "cancelled";
+    if (typeof filter.onchange === "function") {
+      filter.onchange();
+    } else {
+      renderOrdersTable();
+    }
+  }
+}
+
+function openExpandedChartModal() {
+  const chartBars = document.getElementById("expandedChartBars");
+  if (!chartBars) return;
+
+  const successfulOrders = appState.orders.filter(o => o.status === "success");
+  const months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+  
+  const revenueByMonth = {};
+  months.forEach(m => { revenueByMonth[m] = 0; });
+
+  successfulOrders.forEach(order => {
+    const dateStr = order.date || "";
+    const parts = dateStr.split("/");
+    if (parts.length >= 2) {
+      const monthIdx = parseInt(parts[1]) - 1;
+      if (monthIdx >= 0 && monthIdx < 12) {
+        const mName = months[monthIdx];
+        const cleanNum = parseFloat(String(order.amount || "").replace(/[^d.]/g, ""));
+        revenueByMonth[mName] += (isNaN(cleanNum) ? 0 : cleanNum);
+      }
+    }
+  });
+
+  let maxRevenue = 0;
+  months.forEach(m => {
+    if (revenueByMonth[m] > maxRevenue) maxRevenue = revenueByMonth[m];
+  });
+  if (maxRevenue === 0) maxRevenue = 100000;
+
+  chartBars.innerHTML = months.map(mName => {
+    const rev = revenueByMonth[mName];
+    const heightPercent = Math.round((rev / maxRevenue) * 100);
+    const heightStyle = Math.max(heightPercent, 5);
+    return `
+      <div class="chart-bar-item" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; flex: 1;" title="فروش \${mName}: \${rev.toLocaleString()} تومان">
+        <span style="font-size: 10px; font-weight: bold; color: var(--success); margin-bottom: 5px;">\${rev > 0 ? toPersianDigits(Math.round(rev/1000) + "K") : "۰"}</span>
+        <div class="chart-bar" style="height: \${heightStyle}%; width: 22px; background: linear-gradient(180deg, var(--primary) 0%, rgba(0,122,255,0.4) 100%); border-radius: 4px 4px 0 0;"></div>
+        <span style="font-size: 11px; color: var(--text-primary); margin-top: 8px;">\${mName}</span>
+      </div>
+    `;
+  }).join("");
+
+  openModal("expandedChartModal");
+}
+
+function downloadDetailedRevenueReport() {
+  const successfulOrders = appState.orders.filter(o => o.status === "success");
+  const months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+  
+  const revenueByMonth = {};
+  months.forEach(m => { revenueByMonth[m] = 0; });
+
+  successfulOrders.forEach(order => {
+    const dateStr = order.date || "";
+    const parts = dateStr.split("/");
+    if (parts.length >= 2) {
+      const monthIdx = parseInt(parts[1]) - 1;
+      if (monthIdx >= 0 && monthIdx < 12) {
+        const mName = months[monthIdx];
+        const cleanNum = parseFloat(String(order.amount || "").replace(/[^d.]/g, ""));
+        revenueByMonth[mName] += (isNaN(cleanNum) ? 0 : cleanNum);
+      }
+    }
+  });
+
+  let csvContent = "\uFEFF";
+  csvContent += "گزارش مالی سالانه حسابیار - تفکیک ۱۲ ماه\n\n";
+  csvContent += "نام ماه,مبلغ کل فروش (تومان)\n";
+
+  months.forEach(m => {
+    csvContent += `"${m}","${toPersianDigits(revenueByMonth[m].toLocaleString())}"\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `annual_revenue_report_${toPersianDigits(Date.now())}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("گزارش سالانه فروش با موفقیت دانلود شد.", "success");
+}
+
+function openExpandedBestsellersModal() {
+  const container = document.getElementById("expandedBestsellersList");
+  if (!container) return;
+
+  const successfulOrders = appState.orders.filter(o => o.status === "success");
+  const salesByProduct = {};
+  
+  successfulOrders.forEach(order => {
+    const pName = order.product;
+    if (pName) {
+      if (!salesByProduct[pName]) {
+        salesByProduct[pName] = { count: 0, revenue: 0 };
+      }
+      salesByProduct[pName].count++;
+      const cleanNum = parseFloat(String(order.amount || "").replace(/[^d.]/g, ""));
+      salesByProduct[pName].revenue += (isNaN(cleanNum) ? 0 : cleanNum);
+    }
+  });
+
+  const sortedProds = Object.keys(salesByProduct).map(pName => {
+    return {
+      name: pName,
+      count: salesByProduct[pName].count,
+      revenue: salesByProduct[pName].revenue
+    };
+  }).sort((a, b) => b.count - a.count);
+
+  if (sortedProds.length === 0) {
+    container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 2rem;">هنوز تراکنش موفقی ثبت نشده است.</p>`;
+    openModal("expandedBestsellersModal");
+    return;
+  }
+
+  const maxSalesCount = sortedProds[0].count || 1;
+
+  container.innerHTML = sortedProds.slice(0, 12).map(p => {
+    const percent = Math.round((p.count / maxSalesCount) * 100);
+    return `
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 500;">
+          <span style="color: var(--text-primary); font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px;">\${p.name}</span>
+          <span style="color: var(--success); font-weight: bold;">\${toPersianDigits(p.count)} فروش (\${toPersianDigits(p.revenue.toLocaleString())} تومان)</span>
+        </div>
+        <div style="height: 10px; width: 100%; background: rgba(0,0,0,0.05); border-radius: 5px; overflow: hidden;">
+          <div style="height: 100%; width: \${percent}%; background: linear-gradient(90deg, var(--primary) 0%, #34c759 100%); border-radius: 5px;"></div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  openModal("expandedBestsellersModal");
+}
+
+function downloadDetailedBestsellersReport() {
+  const successfulOrders = appState.orders.filter(o => o.status === "success");
+  const salesByProduct = {};
+  
+  successfulOrders.forEach(order => {
+    const pName = order.product;
+    if (pName) {
+      if (!salesByProduct[pName]) {
+        salesByProduct[pName] = { count: 0, revenue: 0 };
+      }
+      salesByProduct[pName].count++;
+      const cleanNum = parseFloat(String(order.amount || "").replace(/[^d.]/g, ""));
+      salesByProduct[pName].revenue += (isNaN(cleanNum) ? 0 : cleanNum);
+    }
+  });
+
+  const sortedProds = Object.keys(salesByProduct).map(pName => {
+    return {
+      name: pName,
+      count: salesByProduct[pName].count,
+      revenue: salesByProduct[pName].revenue
+    };
+  }).sort((a, b) => b.count - a.count);
+
+  let csvContent = "\uFEFF";
+  csvContent += "گزارش تفکیکی پرفروش ترین دوره ها و فایل ها\n\n";
+  csvContent += "نام محصول,تعداد فروش کل,مجموع درآمد تولید شده (تومان)\n";
+
+  sortedProds.forEach(p => {
+    csvContent += `"${p.name}","${toPersianDigits(p.count)}","${toPersianDigits(p.revenue.toLocaleString())}"\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `bestselling_products_report_${toPersianDigits(Date.now())}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("گزارش پرفروش‌ترین محصولات با موفقیت دانلود شد.", "success");
 }
