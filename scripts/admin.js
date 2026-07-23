@@ -136,6 +136,22 @@ function cancelWarningAction() {
     clearInterval(safetyWarningState.timer);
   }
   closeModal("safetyWarningModal");
+
+  // RESTORE ORIGINAL VALUES ON CANCEL:
+  if (typeof loadSystemSettings === "function") {
+    const sysSettings = loadSystemSettings();
+    const nameInput = document.getElementById("setAdminName");
+    const avatarInput = document.getElementById("setAdminAvatar");
+    if (nameInput) nameInput.value = sysSettings.adminName || "";
+    if (avatarInput) avatarInput.value = sysSettings.adminAvatar || "";
+    
+    // Clear password fields on cancel
+    const currentPass = document.getElementById("setAdminCurrentPassword");
+    const newPass = document.getElementById("setAdminPassword");
+    if (currentPass) currentPass.value = "";
+    if (newPass) newPass.value = "";
+  }
+
   showToast("عملیات با موفقیت لغو شد.", "info");
 }
 
