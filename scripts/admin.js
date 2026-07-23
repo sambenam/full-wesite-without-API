@@ -270,9 +270,18 @@ let staffAuditLogs = (function () {
     { date: "۱۴۰۵/۰۵/۰۳ - ۰۹:۲۰", text: "شماره تلفن همراه خود را به «۰۹۱۲۲۲۲۲۲۲۲» تغییر داد." }
   ] };
 })();
-let recentlyUpdatedStaffId = 2; // demo indicator; profile updates will use markStaffRecentlyUpdated()
+let recentlyUpdatedStaffId = 2; // demo indicator
+let recentStaffFieldChanges = { 2: ["name", "phone"] }; // demo: Mohammad updated these fields
+let currentStaffProfileId = 1; // will be set from the authenticated account when login/profile is connected
 function recordStaffChange(staffId, text) { const now = new Date().toLocaleString("fa-IR"); (staffAuditLogs[staffId] ||= []).unshift({ date: now, text: text }); localStorage.setItem("irHesabdarStaffAuditLogs", JSON.stringify(staffAuditLogs)); }
-function markStaffRecentlyUpdated(staffId) { recentlyUpdatedStaffId = staffId; renderStaffTable(); setTimeout(() => { if (recentlyUpdatedStaffId === staffId) { recentlyUpdatedStaffId = null; renderStaffTable(); } }, 8000); }
+function markStaffRecentlyUpdated(staffId, fields) { recentlyUpdatedStaffId = staffId; if (fields && fields.length) recentStaffFieldChanges[staffId] = fields; renderStaffTable(); setTimeout(() => { if (recentlyUpdatedStaffId === staffId) { recentlyUpdatedStaffId = null; delete recentStaffFieldChanges[staffId]; renderStaffTable(); } }, 8000); }
+function applyStaffProfileChanges(staffId, changes) {
+  const staff = appState.users.find(function (user) { return user && user.id === staffId; }); if (!staff) return;
+  const labels = { name: "نام کاربری", email: "ایمیل", phone: "شماره تلفن همراه" }, changed = [];
+  Object.keys(changes || {}).forEach(function (field) { const value = String(changes[field] || "").trim(); if (value && String(staff[field] || "") !== value) { const before = staff[field] || "—"; staff[field] = value; recordStaffChange(staffId, `${labels[field] || field} خود را از «${before}» به «${value}» تغییر داد.`); changed.push(field); } });
+  if (changed.length) { localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); markStaffRecentlyUpdated(staffId, changed); }
+}
+window.applyStaffProfileChanges = applyStaffProfileChanges;
 
 let appState = {
   users: loadDynamicUsers(),
@@ -350,7 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initMobileSidebar();
   initTables();
   // Demo: the red update indicator is visible briefly, just like a real profile update notification.
-  if (recentlyUpdatedStaffId) setTimeout(function () { recentlyUpdatedStaffId = null; renderStaffTable(); }, 8000);
+  if (recentlyUpdatedStaffId) setTimeout(function () { const id = recentlyUpdatedStaffId; recentlyUpdatedStaffId = null; delete recentStaffFieldChanges[id]; renderStaffTable(); }, 8000);
   initNotifications();
   initModals();
   initSearch();
@@ -468,6 +477,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const sideAvatarEl = document.getElementById("sidebarAvatar");
         if (sideNameEl) sideNameEl.textContent = name;
         if (sideAvatarEl) sideAvatarEl.src = avatar;
+        // Keep the access-management record and its audit trail in sync with profile edits.
+        applyStaffProfileChanges(currentStaffProfileId, { name: name });
 
         if (isChangingPassword && newPassword) {
           localStorage.setItem("irHesabdarAdminPassword", newPassword);
@@ -898,7 +909,7 @@ function renderStaffTable() {
     return user && staffRank[user.role] && [user.id, user.name, user.email, user.phone, user.role].join(" ").toLowerCase().includes(query);
   }).sort(function (a, b) { return staffRank[a.role] - staffRank[b.role]; });
   tbody.innerHTML = staff.map(function (user) {
-    const locked = currentAdminUserRole === "admin"; const updated = recentlyUpdatedStaffId === user.id; return `<tr class="${window.pendingStaffDeletion && window.pendingStaffDeletion.id === user.id ? 'user-pending-delete' : ''}"><td>#${toPersianDigits(user.id)}</td><td style="font-weight:500;">${updated ? '<span class="staff-update-dot" title="تغییر جدید ثبت شده"></span>' : ''}${user.name}<span class="staff-role-badge ${staffRank[user.role] === 1 ? 'manager' : 'admin'}">${user.role}</span></td><td class="user-contact-cell">${user.email || '—'}</td><td class="user-contact-cell">${toPersianDigits(user.phone || '—')}</td><td><span class="status ${user.status === 'فعال' ? 'success' : 'cancelled'}">${user.status}</span></td><td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;${locked?'opacity:.45;pointer-events:none;':''}" onclick="editStaff(${user.id})">بررسی و ویرایش</button></td></tr>`;
+    const locked = currentAdminUserRole === "admin"; const updated = recentlyUpdatedStaffId === user.id; return `<tr class="${window.pendingStaffDeletion && window.pendingStaffDeletion.id === user.id ? 'user-pending-delete' : ''}"><td>#${toPersianDigits(user.id)}</td><td style="font-weight:500;">${updated ? '<span class="staff-update-dot" title="تغییر جدید ثبت شده"></span>' : ''}<span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('name')) ? 'staff-field-changed' : ''}">${user.name}</span><span class="staff-role-badge ${staffRank[user.role] === 1 ? 'manager' : 'admin'}">${user.role}</span></td><td class="user-contact-cell"><span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('email')) ? 'staff-field-changed' : ''}">${user.email || '—'}</span></td><td class="user-contact-cell"><span class="staff-field-value ${((recentStaffFieldChanges[user.id] || []).includes('phone')) ? 'staff-field-changed' : ''}">${toPersianDigits(user.phone || '—')}</span></td><td><span class="status ${user.status === 'فعال' ? 'success' : 'cancelled'}">${user.status}</span></td><td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;${locked?'opacity:.45;pointer-events:none;':''}" onclick="editStaff(${user.id})">بررسی و ویرایش</button></td></tr>`;
   }).join("") || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary);">مدیر یا ادمینی برای نمایش وجود ندارد.</td></tr>';
 }
 
@@ -1689,6 +1700,7 @@ function initModals() {
       if (newAvatar) {
         document.getElementById("sidebarAvatar").src = newAvatar;
       }
+      applyStaffProfileChanges(currentStaffProfileId, { name: newName });
 
       closeModal("editProfileModal");
       showToast("پروفایل مدیر کل با موفقیت به‌روزرسانی شد", "success");
