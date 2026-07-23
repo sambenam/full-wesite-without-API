@@ -1628,10 +1628,10 @@ function openExpandedChartModal() {
     const heightPercent = Math.round((rev / maxRevenue) * 100);
     const heightStyle = Math.max(heightPercent, 5);
     return `
-      <div class="chart-bar-item" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; flex: 1;" title="فروش \${mName}: \${rev.toLocaleString()} تومان">
-        <span style="font-size: 10px; font-weight: bold; color: var(--success); margin-bottom: 5px;">\${rev > 0 ? toPersianDigits(Math.round(rev/1000) + "K") : "۰"}</span>
-        <div class="chart-bar" style="height: \${heightStyle}%; width: 22px; background: linear-gradient(180deg, var(--primary) 0%, rgba(0,122,255,0.4) 100%); border-radius: 4px 4px 0 0;"></div>
-        <span style="font-size: 11px; color: var(--text-primary); margin-top: 8px;">\${mName}</span>
+      <div class="chart-bar-item" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; flex: 1;" title="فروش ${mName}: ${rev.toLocaleString()} تومان">
+        <span style="font-size: 10px; font-weight: bold; color: var(--success); margin-bottom: 5px;">${rev > 0 ? toPersianDigits(Math.round(rev/1000) + "K") : "۰"}</span>
+        <div class="chart-bar" style="height: ${heightStyle}%; width: 22px; background: linear-gradient(180deg, var(--primary) 0%, rgba(0,122,255,0.4) 100%); border-radius: 4px 4px 0 0;"></div>
+        <span style="font-size: 11px; color: var(--text-primary); margin-top: 8px;">${mName}</span>
       </div>
     `;
   }).join("");
@@ -1718,11 +1718,11 @@ function openExpandedBestsellersModal() {
     return `
       <div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 500;">
-          <span style="color: var(--text-primary); font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px;">\${p.name}</span>
-          <span style="color: var(--success); font-weight: bold;">\${toPersianDigits(p.count)} فروش (\${toPersianDigits(p.revenue.toLocaleString())} تومان)</span>
+          <span style="color: var(--text-primary); font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px;">${p.name}</span>
+          <span style="color: var(--success); font-weight: bold;">${toPersianDigits(p.count)} فروش (${toPersianDigits(p.revenue.toLocaleString())} تومان)</span>
         </div>
         <div style="height: 10px; width: 100%; background: rgba(0,0,0,0.05); border-radius: 5px; overflow: hidden;">
-          <div style="height: 100%; width: \${percent}%; background: linear-gradient(90deg, var(--primary) 0%, #34c759 100%); border-radius: 5px;"></div>
+          <div style="height: 100%; width: ${percent}%; background: linear-gradient(90deg, var(--primary) 0%, #34c759 100%); border-radius: 5px;"></div>
         </div>
       </div>
     `;
