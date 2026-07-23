@@ -1486,3 +1486,7 @@ summary {
 .user-modal-layout__management .user-orders-accordion { margin-top: 0; }
 .user-details-modal .modal-footer { margin-top:10px; }
 @media(max-width:760px){.user-details-modal{width:94vw!important;overflow-y:auto;max-height:calc(100vh - 20px)}.user-modal-layout{grid-template-columns:1fr}.user-modal-layout__identity,.user-modal-layout__management{grid-column:auto}}
+.staff-page-title { display:flex; justify-content:space-between; align-items:center; gap:14px; }
+.staff-role-badge { display:inline-block; margin-right:7px; padding:3px 7px; border-radius:5px; font-size:10px; font-weight:700; }.staff-role-badge.manager{color:#7c3aed;background:rgba(124,58,237,.10)}.staff-role-badge.admin{color:var(--primary);background:rgba(0,122,255,.10)}
+#staffManageTable { table-layout:fixed; } #staffManageTable th,#staffManageTable td{text-align:right;} #staffManageTable .user-contact-cell{direction:ltr;text-align:right;unicode-bidi:plaintext;white-space:nowrap}
+@media(max-width:600px){.staff-page-title{align-items:flex-start;flex-direction:column}}

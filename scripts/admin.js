@@ -43,6 +43,8 @@ function loadDynamicOrders() {
 }
 
 const initialUsers = [
+  { id: 1, name: "سام به‌نام", email: "sam@example.com", phone: "09121111111", role: "مدیر سایت", status: "فعال" },
+  { id: 2, name: "محمد رضایی", email: "mohammad@example.com", phone: "09122222222", role: "ادمین", status: "فعال" },
   { id: 3, name: "علی احمدی", email: "ali@example.com", phone: "09121234567", role: "کاربر عادی", status: "فعال" },
   { id: 4, name: "سارا محمدی", email: "sara@example.com", phone: "09129876543", role: "کاربر عادی", status: "فعال" },
   { id: 5, name: "زهرا کریمی", email: "zahra@example.com", phone: "09123456789", role: "کاربر عادی", status: "غیرفعال" }
@@ -696,6 +698,8 @@ function switchView(viewName) {
     renderAnalyticsView();
   }
 
+  if (viewName === "staff") { renderStaffTable(); }
+
   // Handle rendering and updating messages count when entering Messages tab
   if (viewName === "messages") {
     renderMessages();
@@ -787,6 +791,7 @@ function initTables() {
   renderDashboardOrders();
   renderDashboardProducts();
   renderUsersTable();
+  renderStaffTable();
   renderProductsTable();
   renderOrdersTable();
   renderMessages();
@@ -869,6 +874,25 @@ function renderUsersTable() {
     </tr>`;
   }).join("") || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary);">کاربر عادی برای نمایش وجود ندارد.</td></tr>';
 }
+function renderStaffTable() {
+  const tbody = document.querySelector("#staffManageTable tbody");
+  if (!tbody) return;
+  const input = document.getElementById("staffTableSearch");
+  const query = input ? input.value.trim().toLowerCase() : "";
+  const staffRank = { "مدیر سایت": 1, "مدیر سیستم": 1, "ادمین": 2 };
+  const staff = appState.users.filter(function (user) {
+    return user && staffRank[user.role] && [user.id, user.name, user.email, user.phone, user.role].join(" ").toLowerCase().includes(query);
+  }).sort(function (a, b) { return staffRank[a.role] - staffRank[b.role]; });
+  tbody.innerHTML = staff.map(function (user) {
+    return `<tr><td>#${toPersianDigits(user.id)}</td><td style="font-weight:500;">${user.name}<span class="staff-role-badge ${staffRank[user.role] === 1 ? 'manager' : 'admin'}">${user.role}</span></td><td class="user-contact-cell">${user.email || '—'}</td><td class="user-contact-cell">${toPersianDigits(user.phone || '—')}</td><td><span class="status ${user.status === 'فعال' ? 'success' : 'cancelled'}">${user.status}</span></td><td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;" onclick="editStaff(${user.id})">بررسی و ویرایش</button></td></tr>`;
+  }).join("") || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary);">مدیر یا ادمینی برای نمایش وجود ندارد.</td></tr>';
+}
+
+function editStaff(id) {
+  const staff = appState.users.find(function (user) { return user && user.id === id; });
+  if (staff) showToast(`بخش ویرایش «${staff.name}» در مرحله بعدی طبق نیاز شما تکمیل می‌شود.`, "info");
+}
+
 function renderProductsTable() {
   const tbody = document.querySelector("#productsManageTable tbody");
   if (!tbody) return;
@@ -1596,8 +1620,10 @@ function initModals() {
       }
 
       const newUser = {
-        id: appState.users.length + 1,
+        id: appState.users.reduce((max, user) => Math.max(max, Number(user.id) || 0), 0) + 1,
         name: name,
+        email: email,
+        phone: phone,
         contact: `${email} / ${phone}`,
         role: role,
         status: "فعال"
@@ -1609,9 +1635,10 @@ function initModals() {
       localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
 
       renderUsersTable();
+      renderStaffTable();
       closeModal("addUserModal");
       addUserForm.reset();
-      showToast("کاربر جدید با موفقیت ثبت شد", "success");
+      showToast("مدیر یا ادمین جدید با موفقیت ثبت شد", "success");
     });
   }
 
@@ -1809,6 +1836,9 @@ function initSearch() {
       });
     });
   }
+
+  const staffSearch = document.getElementById("staffTableSearch");
+  if (staffSearch) staffSearch.addEventListener("input", renderStaffTable);
 
   const prodSearch = document.getElementById("productTableSearch");
   if (prodSearch) {

@@ -40,6 +40,12 @@
               <span>کاربران</span>
             </a>
           </li>
+          <li data-view="staff">
+            <a href="#staff">
+              <i class="fas fa-user-shield"></i>
+              <span>مدیریت دسترسی‌ها</span>
+            </a>
+          </li>
 
           <!-- Products Link (No dropdown) -->
           <li data-view="products">
@@ -453,6 +459,20 @@
                 <tbody></tbody>
               </table>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: STAFF / ACCESS MANAGEMENT -->
+      <div id="view-staff" class="admin-view">
+        <div class="dashboard-content">
+          <div class="page-title staff-page-title">
+            <div><h1>مدیریت دسترسی‌ها</h1><p>فهرست مدیران و ادمین‌های سامانه</p></div>
+            <button class="btn-primary" onclick="openModal('addUserModal')"><i class="fas fa-user-plus"></i> افزودن مدیر یا ادمین</button>
+          </div>
+          <div class="glass-card">
+            <div class="card-header"><h2>مدیران و ادمین‌ها</h2><input type="text" id="staffTableSearch" class="form-control" style="max-width:250px;padding:8px 12px" placeholder="جستجوی مدیر یا ادمین..." /></div>
+            <div class="table-container"><table class="data-table" id="staffManageTable"><thead><tr><th>شناسه</th><th>نام کاربر</th><th>ایمیل</th><th>تلفن همراه</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody></tbody></table></div>
           </div>
         </div>
       </div>
@@ -904,6 +924,7 @@
               style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1);"
               required
             >
+              <option value="مدیر سایت">مدیر سایت</option>
               <option value="ادمین">ادمین</option>
             </select>
           </div>
