@@ -863,7 +863,7 @@ function renderUsersTable() {
     return `<tr class="${isPending ? "user-pending-delete" : ""}">
       <td>#${toPersianDigits(user.id)}</td>
       <td style="font-weight:500;">${user.name}${isPending ? '<span class="user-pending-delete-note"><i class="fas fa-exclamation-circle"></i> این کاربر حذف شده و تا چند ثانیه دیگر از لیست خارج می‌شود</span>' : ''}</td>
-      <td dir="ltr">${user.email || "—"}</td><td dir="ltr">${toPersianDigits(user.phone || "—")}</td>
+      <td class="user-contact-cell">${user.email || "—"}</td><td class="user-contact-cell">${toPersianDigits(user.phone || "—")}</td>
       <td><span class="status ${user.status === "فعال" ? "success" : "cancelled"}">${user.status}</span></td>
       <td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;" onclick="editUser(${user.id})" ${isPending ? "disabled" : ""}>بررسی و ویرایش</button></td>
     </tr>`;

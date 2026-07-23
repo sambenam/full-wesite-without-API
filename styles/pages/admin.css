@@ -1474,3 +1474,15 @@ summary {
 .user-status-field select { padding: 7px 10px; }
 .user-delete-zone { padding: 10px 12px; margin-bottom: 10px; }
 .user-details-modal .modal-footer { padding-top: 10px; }
+/* Align contact values directly below their table headings, even for LTR email/number content. */
+#usersManageTable { table-layout: fixed; }
+#usersManageTable th, #usersManageTable td { text-align: right; }
+#usersManageTable .user-contact-cell { direction: ltr; text-align: right; unicode-bidi: plaintext; white-space: nowrap; }
+
+/* Wide, two-column user modal: identity at right and account management at left. */
+.user-details-modal { width: 85vw !important; max-width: none !important; max-height: none; overflow: hidden; padding: 12px 22px; }
+.user-modal-layout { display:grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap:20px; align-items:start; }
+.user-modal-layout__identity { grid-column: 1; }.user-modal-layout__management { grid-column: 2; }
+.user-modal-layout__management .user-orders-accordion { margin-top: 0; }
+.user-details-modal .modal-footer { margin-top:10px; }
+@media(max-width:760px){.user-details-modal{width:94vw!important;overflow-y:auto;max-height:calc(100vh - 20px)}.user-modal-layout{grid-template-columns:1fr}.user-modal-layout__identity,.user-modal-layout__management{grid-column:auto}}

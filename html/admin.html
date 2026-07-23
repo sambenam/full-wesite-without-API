@@ -424,7 +424,7 @@
           >
             <div>
               <h1>مدیریت کاربران</h1>
-              <p>لیست کامل کاربران و مدیریت دسترسی‌ها</p>
+
             </div>
           </div>
           <div class="glass-card">
@@ -1012,30 +1012,22 @@
         </div>
         <form id="editUserForm">
           <input type="hidden" id="editUserId" />
-          <section class="user-identity-card">
-            <div class="user-identity-card__icon"><i class="fas fa-user"></i></div>
-            <div><strong id="userModalDisplayName">—</strong></div>
-          </section>
-          <div class="user-readonly-grid">
-            <div class="user-readonly-field"><label><i class="fas fa-fingerprint"></i> شناسه کاربر</label><output id="editUserIdDisplay">—</output></div>
-            <div class="user-readonly-field"><label><i class="fas fa-user"></i> نام کاربر</label><output id="editUserNameDisplay">—</output></div>
-            <div class="user-readonly-field"><label><i class="fas fa-envelope"></i> ایمیل</label><output id="editUserEmailDisplay" dir="ltr">—</output></div>
-            <div class="user-readonly-field"><label><i class="fas fa-phone"></i> تلفن همراه</label><output id="editUserPhoneDisplay" dir="ltr">—</output></div>
+          <div class="user-modal-layout">
+            <section class="user-modal-layout__identity">
+              <section class="user-identity-card"><div class="user-identity-card__icon"><i class="fas fa-user"></i></div><div><strong id="userModalDisplayName">—</strong></div></section>
+              <div class="user-readonly-grid">
+                <div class="user-readonly-field"><label><i class="fas fa-fingerprint"></i> شناسه کاربر</label><output id="editUserIdDisplay">—</output></div>
+                <div class="user-readonly-field"><label><i class="fas fa-user"></i> نام کاربر</label><output id="editUserNameDisplay">—</output></div>
+                <div class="user-readonly-field"><label><i class="fas fa-envelope"></i> ایمیل</label><output id="editUserEmailDisplay" dir="ltr">—</output></div>
+                <div class="user-readonly-field"><label><i class="fas fa-phone"></i> تلفن همراه</label><output id="editUserPhoneDisplay" dir="ltr">—</output></div>
+              </div>
+            </section>
+            <section class="user-modal-layout__management">
+              <details class="user-orders-accordion" id="userOrdersAccordion"><summary><span><i class="fas fa-shopping-bag"></i> سفارشات این کاربر</span><span class="user-orders-accordion__hint" id="userOrdersCount">برای مشاهده کلیک کنید</span><i class="fas fa-chevron-down"></i></summary><div class="user-orders-list" id="userOrdersList"></div></details>
+              <div class="form-group user-status-field"><label>وضعیت حساب کاربری</label><select id="editUserStatus" class="form-control select-dropdown"><option value="فعال">🟢 فعال</option><option value="غیرفعال">⚪ غیرفعال</option><option value="بلاک شده">🔴 مسدود شده (بلاک)</option></select></div>
+              <section class="user-delete-zone"><div><h4><i class="fas fa-trash-alt"></i> حذف حساب کاربری</h4><p>پس از تأیید، کاربر برای ۱۰ ثانیه در لیست با هشدار قرمز نمایش داده می‌شود و سپس حذف خواهد شد.</p></div><button type="button" id="deleteUserFromEditBtn"><i class="fas fa-trash"></i> حذف کاربر</button></section>
+            </section>
           </div>
-          <details class="user-orders-accordion" id="userOrdersAccordion">
-            <summary><span><i class="fas fa-shopping-bag"></i> سفارشات این کاربر</span><span class="user-orders-accordion__hint" id="userOrdersCount">برای مشاهده کلیک کنید</span><i class="fas fa-chevron-down"></i></summary>
-            <div class="user-orders-list" id="userOrdersList"></div>
-          </details>
-          <div class="form-group user-status-field">
-            <label>وضعیت حساب کاربری</label>
-            <select id="editUserStatus" class="form-control select-dropdown">
-              <option value="فعال">🟢 فعال</option><option value="غیرفعال">⚪ غیرفعال</option><option value="بلاک شده">🔴 مسدود شده (بلاک)</option>
-            </select>
-          </div>
-          <section class="user-delete-zone">
-            <div><h4><i class="fas fa-trash-alt"></i> حذف حساب کاربری</h4><p>پس از تأیید، کاربر برای ۱۰ ثانیه در لیست با هشدار قرمز نمایش داده می‌شود و سپس حذف خواهد شد.</p></div>
-            <button type="button" id="deleteUserFromEditBtn"><i class="fas fa-trash"></i> حذف کاربر</button>
-          </section>
           <div class="modal-footer"><button type="button" class="btn-secondary" onclick="closeModal('editUserModal')">بستن</button><button type="submit" class="btn-primary">ذخیره وضعیت</button></div>
         </form>
       </div>
