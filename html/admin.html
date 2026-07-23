@@ -708,34 +708,59 @@
       </div>
 
       <!-- VIEW 6: ANALYTICS -->
+      <!-- VIEW: ANALYTICS -->
       <div id="view-analytics" class="admin-view">
         <div class="dashboard-content">
           <div class="page-title">
-            <h1>تحلیل و گزارش‌ها</h1>
-            <p>آمار دقیق فروش و نمودارهای عملکردی</p>
+            <h1>تحلیل و گزارش‌های پیشرفته</h1>
+            <p>آمار عملکرد مالی، پرفروش‌ترین محصولات و نمودارهای پویا</p>
           </div>
-          <div class="glass-card">
-            <div class="card-header"><h2>نمودار درآمد سالانه</h2></div>
-            <div class="stats-chart" style="height: 250px">
-              <div class="chart-bars" style="height: 220px">
-                <div class="chart-bar-item">
-                  <div class="chart-bar" style="height: 30%"></div>
-                  <span>فروردین</span>
-                </div>
-                <div class="chart-bar-item">
-                  <div class="chart-bar" style="height: 55%"></div>
-                  <span>اردیبهشت</span>
-                </div>
-                <div class="chart-bar-item">
-                  <div class="chart-bar" style="height: 75%"></div>
-                  <span>خرداد</span>
-                </div>
-                <div class="chart-bar-item">
-                  <div class="chart-bar" style="height: 90%"></div>
-                  <span>تیر</span>
+
+          <!-- KPI Cards for Financial Metrics -->
+          <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div class="stat-card">
+              <div class="stat-icon green"><i class="fas fa-calculator"></i></div>
+              <div class="stat-info">
+                <h3 id="set-analytics-avg">۰ تومان</h3>
+                <p>میانگین مبلغ هر خرید</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon red"><i class="fas fa-ban"></i></div>
+              <div class="stat-info">
+                <h3 id="set-analytics-cancel">۰٪</h3>
+                <p>نرخ لغو سفارشات</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon blue"><i class="fas fa-graduation-cap"></i></div>
+              <div class="stat-info">
+                <h3 id="set-analytics-products">۰ عدد</h3>
+                <p>کل محصولات و دوره‌ها</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; align-items: stretch;">
+            
+            <!-- Live Monthly Revenue Chart -->
+            <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <div class="card-header"><h2>📊 نمودار فروش ماهیانه (تومان)</h2></div>
+              <div class="stats-chart" style="height: 250px; display: flex; align-items: flex-end; justify-content: center; margin-top: 20px;">
+                <div class="chart-bars" id="dynamicChartBars" style="height: 220px; display: flex; align-items: flex-end; gap: 20px; width: 100%; justify-content: space-around;">
+                  <!-- Rendered dynamically by JS -->
                 </div>
               </div>
             </div>
+
+            <!-- Bestselling Products Progress List -->
+            <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <div class="card-header" style="margin-bottom: 12px;"><h2>🏆 دوره‌ها و فایل‌های پرفروش</h2></div>
+              <div id="bestsellingProductsContainer" style="display: flex; flex-direction: column; gap: 14px; text-align: right; direction: rtl; justify-content: center; height: 100%;">
+                <!-- Rendered dynamically by JS -->
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

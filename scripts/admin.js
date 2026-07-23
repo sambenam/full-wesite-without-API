@@ -427,6 +427,9 @@ document.addEventListener("DOMContentLoaded", () => {
   updateDashboardMetrics();
   updateOrdersNotifications();
   updateSettingsLockout();
+  if (typeof renderAnalyticsView === "function") {
+    renderAnalyticsView();
+  }
 
   console.log("🎉 پنل مدیریت کل با موفقیت بارگذاری و فعال شد.");
 });
@@ -566,6 +569,11 @@ function switchView(viewName) {
   // Handle settings lockout for Admins
   if (viewName === "settings" && typeof updateSettingsLockout === "function") {
     updateSettingsLockout();
+  }
+
+  // Handle rendering of Analytics View
+  if (viewName === "analytics" && typeof renderAnalyticsView === "function") {
+    renderAnalyticsView();
   }
 }
 
