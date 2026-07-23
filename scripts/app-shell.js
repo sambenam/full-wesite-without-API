@@ -69,7 +69,7 @@
         <div style="position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999999; color: #fff; text-align: center; font-family: 'Vazirmatn', sans-serif; padding: 20px; direction: rtl;">
           <i class="fas fa-tools" style="font-size: 5rem; color: #ff9500; margin-bottom: 20px; animation: bounce 2s infinite;"></i>
           <h1 style="font-size: 2rem; font-weight: bold; margin-bottom: 10px;">🛠️ وب‌سایت در دست تعمیر و به‌روزرسانی است</h1>
-          <p style="color: #94a3b8; max-width: 500px; line-height: 1.8; margin-bottom: 20px;">کاربر گرامی، ما در حال ارتقا و بهبود خدمات حسابیار هستیم. این فرآیند چند دقیقه بیشتر طول نخواهد کشید. از شکیبایی شما سپاسگزاریم.</p>
+          <p style="color: #94a3b8; max-width: 500px; line-height: 1.8; margin-bottom: 20px; font-size: 15px;">کاربر گرامی، ما در حال ارتقا و بهبود خدمات وبسایت هستیم. از اینکه تا پایان این فرایند مارا همراهی میکنید متشکریم.</p>
           <div style="font-size: 13px; color: #64748b; margin-bottom: 10px;">پشتیبانی: support@irhesabdar.ir</div>
           
           <style>

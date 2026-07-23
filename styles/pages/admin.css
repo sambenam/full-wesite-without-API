@@ -1393,3 +1393,13 @@ body {
     color: #fff !important;
     box-shadow: 0 4px 10px rgba(255, 59, 48, 0.25);
 }
+
+/* Ensure all buttons have the hand pointer cursor on hover */
+button, 
+.btn-primary, 
+.btn-secondary, 
+.action-btn, 
+.modal-close,
+summary {
+    cursor: pointer !important;
+}
