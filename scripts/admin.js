@@ -50,10 +50,11 @@ const initialUsers = [
 
 function normalizeUserContact(user) {
   const copy = Object.assign({}, user);
-  if (!copy.email || !copy.phone) {
-    const parts = String(copy.contact || "").split(/\s*\/\s*/);
-    copy.email = copy.email || parts.find(function (value) { return value.includes("@"); }) || "—";
-    copy.phone = copy.phone || parts.find(function (value) { return !value.includes("@"); }) || "09121234567";
+  const isEmptyValue = function (value) { return !value || String(value).trim() === "—"; };
+  if (isEmptyValue(copy.email) || isEmptyValue(copy.phone)) {
+    const parts = String(copy.contact || "").split(/\s*\/\s*/).filter(Boolean);
+    if (isEmptyValue(copy.email)) copy.email = parts.find(function (value) { return value.includes("@"); }) || "—";
+    if (isEmptyValue(copy.phone)) copy.phone = parts.find(function (value) { return !value.includes("@"); }) || "09121234567";
   }
   return copy;
 }

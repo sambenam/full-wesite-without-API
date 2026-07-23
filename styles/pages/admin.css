@@ -1454,3 +1454,23 @@ summary {
 .user-details-modal__header .modal-close { margin-left: auto; }
 .user-readonly-grid { grid-template-columns: 1fr; }
 .user-identity-card { margin-top: 0; }
+/* A compact, viewport-safe user sheet: all controls remain reachable on short screens. */
+.user-details-modal {
+  max-height: calc(100vh - 24px);
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 14px 20px;
+  scrollbar-width: thin;
+}
+.user-details-modal .modal-header { margin-bottom: 6px; }
+.user-identity-card { padding: 9px 12px; margin-bottom: 10px; }
+.user-identity-card__icon { width:34px; height:34px; border-radius:10px; }
+.user-readonly-grid { gap: 7px; }
+.user-readonly-field { padding: 7px 11px; min-height: 38px; }
+.user-readonly-field label { margin-bottom: 3px; }
+.user-orders-accordion { margin: 10px 0; }
+.user-orders-accordion summary { padding: 10px 12px; }
+.user-status-field { margin-bottom: 10px; }
+.user-status-field select { padding: 7px 10px; }
+.user-delete-zone { padding: 10px 12px; margin-bottom: 10px; }
+.user-details-modal .modal-footer { padding-top: 10px; }
