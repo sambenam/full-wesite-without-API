@@ -392,10 +392,10 @@ function pushAdminNotification(type, title, desc, details = {}) {
 // Each event type owns its display schema, so adding API fields never affects other notification types.
 const notificationDetailSchemas = {
   purchase: { label: "سفارش و پرداخت", icon: "fa-bag-shopping", fields: ["شماره سفارش", "خریدار", "ایمیل خریدار", "تلفن خریدار", "محصول", "مبلغ", "وضعیت پرداخت", "روش پرداخت", "کد پیگیری", "تاریخ ثبت"] },
-  user: { label: "ثبت‌نام کاربر", icon: "fa-user-plus", fields: ["نام کاربر", "ایمیل", "تلفن", "روش ثبت‌نام", "تاریخ ثبت‌نام"] },
+  user: { label: "ثبت‌نام کاربر", icon: "fa-user-plus", fields: ["شناسه کاربر", "نام کاربر", "ایمیل", "تلفن", "نقش", "وضعیت حساب", "روش ثبت‌نام", "تاریخ ثبت‌نام"] },
   staff: { label: "تغییرات پروفایل ادمین", icon: "fa-user-gear", fields: ["کاربر", "نقش", "موارد تغییرکرده", "زمان تغییر", "نشانی IP"] },
   deletion: { label: "حذف حساب مدیریت", icon: "fa-user-slash", fields: ["حساب حذف‌شده", "نقش", "حذف‌کننده", "شناسه حذف‌کننده", "تاریخ"] },
-  report: { label: "گزارش تخلف", icon: "fa-flag", fields: ["شناسه گزارش", "گزارش‌دهنده", "کاربر/مورد گزارش‌شده", "نوع گزارش", "درجه اهمیت", "شرح", "تاریخ"] }
+  report: { label: "گزارش تخلف", icon: "fa-flag", fields: ["شناسه گزارش", "گزارش‌دهنده", "کاربر/مورد گزارش‌شده", "نوع گزارش", "درجه اهمیت", "وضعیت رسیدگی", "شرح", "تصویر/فایل ضمیمه", "لینک شواهد", "تاریخ"] }
 };
 function openNotificationDetails(id) {
   const n = appState.notifications.find(item => String(item.id) === String(id)); if (!n) return;
@@ -410,9 +410,9 @@ function openNotificationDetails(id) {
   const grid = fields.length ? `<div class="notification-detail-grid">${fields.map(renderField).join("")}</div>` : '<p class="notification-detail-empty">جزئیات تکمیلی این رویداد از سرور دریافت نشده است.</p>';
   const extras = extraFields.length ? `<div class="notification-extra-fields">${extraFields.map(renderField).join("")}</div>` : "";
   if (n.type === "purchase") body.innerHTML = `<div class="notification-detail-hero purchase"><i class="fas fa-receipt"></i><div><small>سفارش و پرداخت</small><strong>${details["شماره سفارش"] || "سفارش جدید"}</strong></div><b>${details["مبلغ"] || "—"}</b></div>${grid}`;
-  else if (n.type === "user") body.innerHTML = `<div class="notification-detail-hero user"><i class="fas fa-user-plus"></i><div><small>عضو جدید سامانه</small><strong>${details["نام کاربر"] || "کاربر جدید"}</strong></div></div>${grid}`;
+  else if (n.type === "user") body.innerHTML = `<div class="notification-detail-hero user"><i class="fas fa-user-plus"></i><div><small>حساب کاربری جدید</small><strong>${details["نام کاربر"] || "کاربر جدید"}</strong></div><b>${details["شناسه کاربر"] || "—"}</b></div><div class="notification-account-status"><span>${details["نقش"] || "کاربر عادی"}</span><span>${details["وضعیت حساب"] || "فعال"}</span></div>${grid}`;
   else if (n.type === "staff") body.innerHTML = `<div class="notification-detail-hero staff"><i class="fas fa-user-gear"></i><div><small>${details["نقش"] || "عضو مدیریت"}</small><strong>${details["کاربر"] || "—"}</strong></div></div><div class="notification-change-summary"><small>تغییرات ثبت‌شده</small><strong>${details["موارد تغییرکرده"] || "—"}</strong></div>${grid}`;
-  else if (n.type === "report") body.innerHTML = `<div class="notification-detail-hero report"><i class="fas fa-flag"></i><div><small>گزارش با اهمیت ${details["درجه اهمیت"] || "—"}</small><strong>${details["شناسه گزارش"] || "گزارش جدید"}</strong></div></div><div class="notification-report-text"><small>شرح گزارش</small><p>${details["شرح"] || n.desc}</p></div>${grid}`;
+  else if (n.type === "report") body.innerHTML = `<div class="notification-detail-hero report"><i class="fas fa-flag"></i><div><small>گزارش با اهمیت ${details["درجه اهمیت"] || "—"}</small><strong>${details["شناسه گزارش"] || "گزارش جدید"}</strong></div><b>${details["وضعیت رسیدگی"] || "جدید"}</b></div><div class="notification-report-text"><small>شرح گزارش</small><p>${details["شرح"] || n.desc}</p></div>${grid}<div class="notification-evidence"><i class="fas fa-paperclip"></i><div><small>شواهد و ضمائم</small><strong>${details["تصویر/فایل ضمیمه"] || "بدون فایل ضمیمه"}</strong><a href="${details["لینک شواهد"] || '#'}" target="_blank">مشاهده شواهد</a></div></div>`;
   else if (n.type === "deletion") body.innerHTML = `<div class="notification-detail-hero deletion"><i class="fas fa-user-slash"></i><div><small>عملیات حذف حساب</small><strong>${details["حساب حذف‌شده"] || "—"}</strong></div></div><div class="notification-deletion-warning"><i class="fas fa-triangle-exclamation"></i> این عملیات توسط ${details["حذف‌کننده"] || "مدیر"} انجام شده است.</div>${grid}`;
   else body.innerHTML = `<p class="notification-detail-desc">${n.desc}</p>${grid}${extras}`;
   openModal("notificationDetailModal");
@@ -423,9 +423,10 @@ function activateNotificationBell(theme) {
   clearTimeout(bellTimer); bell.classList.remove("bell-green","bell-blue","bell-yellow","bell-red","bell-black"); bell.classList.add("bell-" + theme);
   bellTimer = setTimeout(() => bell.classList.remove("bell-green","bell-blue","bell-yellow","bell-red","bell-black"), 10000);
 }
+function notificationCardSummary(n) { const d=n.details||{}; if(n.type==="user") return `${d["نام کاربر"]||"کاربر جدید"} · ${d["ایمیل"]||"—"}`; if(n.type==="report") return `${d["شناسه گزارش"]||"گزارش"} · ${d["درجه اهمیت"]||"—"} · ${d["وضعیت رسیدگی"]||"جدید"}`; return n.desc; }
 function renderNotificationsPage() {
   const container = document.getElementById("notificationsPageList"); if (!container) return;
-  container.innerHTML = visibleNotifications().map(n => `<div class="notification-item notification-${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><i class="fas ${n.type === 'purchase' ? 'fa-circle-check' : n.type === 'user' ? 'fa-user-plus' : n.type === 'staff' ? 'fa-user-gear' : n.type === 'deletion' ? 'fa-user-slash' : 'fa-flag'}"></i><div><strong>${n.title}</strong><p>${n.desc}</p><small>${formatNotificationTime(n.createdAt, n.time)}</small></div></div>`).join("") || '<p style="text-align:center;padding:2rem">اعلانی وجود ندارد.</p>';
+  container.innerHTML = visibleNotifications().map(n => `<div class="notification-item notification-${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><i class="fas ${n.type === 'purchase' ? 'fa-circle-check' : n.type === 'user' ? 'fa-user-plus' : n.type === 'staff' ? 'fa-user-gear' : n.type === 'deletion' ? 'fa-user-slash' : 'fa-flag'}"></i><div><strong>${n.title}</strong><p>${notificationCardSummary(n)}</p><small>${formatNotificationTime(n.createdAt, n.time)}</small></div></div>`).join("") || '<p style="text-align:center;padding:2rem">اعلانی وجود ندارد.</p>';
 }
 window.pushAdminNotification = pushAdminNotification;
 // Receives real order/user events written by other pages of the same site (checkout/sign-up).
@@ -480,8 +481,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(function () {
     appState.notifications = [];
     pushAdminNotification("staff", "ویرایش پروفایل ادمین", "ادمین «محمد رضایی» اطلاعات پروفایل خود را به‌روزرسانی کرد.", { "کاربر": "محمد رضایی", "نقش": "ادمین", "موارد تغییرکرده": "نام کاربری و تلفن همراه", "زمان تغییر": "۱۴۰۵/۰۵/۰۳ - ۱۰:۴۵", "نشانی IP": "185.73.12.44" });
-    pushAdminNotification("user", "ثبت‌نام کاربر جدید", "کاربر «سارا محمدی» به سامانه پیوست.", { "نام کاربر": "سارا محمدی", "ایمیل": "sara@example.com", "تلفن": "۰۹۱۲۹۸۷۶۵۴۳", "روش ثبت‌نام": "فرم ثبت‌نام سایت", "تاریخ ثبت‌نام": "۱۴۰۵/۰۵/۰۳ - ۱۰:۳۰" });
-    pushAdminNotification("report", "گزارش تخلف جدید", "کاربر «علی احمدی» یک گزارش تخلف ثبت کرده است.", { "شناسه گزارش": "RPT-۱۰۴۲", "گزارش‌دهنده": "علی احمدی", "کاربر/مورد گزارش‌شده": "محتوای دوره حسابداری مقدماتی", "نوع گزارش": "تخلف در محتوا", "درجه اهمیت": "متوسط", "شرح": "گزارش آزمایشی برای بررسی سیستم اعلان", "تاریخ": "۱۴۰۵/۰۵/۰۳ - ۱۰:۳۵" });
+    pushAdminNotification("user", "ثبت‌نام کاربر جدید", "کاربر «سارا محمدی» به سامانه پیوست.", { "شناسه کاربر": "#۴", "نام کاربر": "سارا محمدی", "ایمیل": "sara@example.com", "تلفن": "۰۹۱۲۹۸۷۶۵۴۳", "نقش": "کاربر عادی", "وضعیت حساب": "فعال", "روش ثبت‌نام": "فرم ثبت‌نام سایت", "تاریخ ثبت‌نام": "۱۴۰۵/۰۵/۰۳ - ۱۰:۳۰" });
+    pushAdminNotification("report", "گزارش تخلف جدید", "کاربر «علی احمدی» یک گزارش تخلف ثبت کرده است.", { "شناسه گزارش": "RPT-۱۰۴۲", "گزارش‌دهنده": "علی احمدی", "کاربر/مورد گزارش‌شده": "محتوای دوره حسابداری مقدماتی", "نوع گزارش": "تخلف در محتوا", "درجه اهمیت": "متوسط", "وضعیت رسیدگی": "در انتظار بررسی", "شرح": "گزارش آزمایشی برای بررسی سیستم اعلان", "تصویر/فایل ضمیمه": "تصویر گزارش-۱۰۴۲.jpg", "لینک شواهد": "#", "تاریخ": "۱۴۰۵/۰۵/۰۳ - ۱۰:۳۵" });
     pushAdminNotification("purchase", "سفارش جدید ثبت شد", "سفارش شماره #۷۴۸۳۳ با موفقیت ثبت شد.", { "شماره سفارش": "#۷۴۸۳۳", "خریدار": "علی احمدی", "ایمیل خریدار": "ali@example.com", "تلفن خریدار": "۰۹۱۲۱۲۳۴۵۶۷", "محصول": "دوره حسابداری مقدماتی", "مبلغ": "۹۵,۰۰۰ تومان", "وضعیت پرداخت": "موفق", "روش پرداخت": "درگاه زرین‌پال", "کد پیگیری": "A-۴۸۲۱۹", "تاریخ ثبت": "۱۴۰۵/۰۵/۰۳ - ۱۰:۴۰" });
   }, 700);
   initModals();
@@ -2002,7 +2003,7 @@ function initNotifications() {
 function renderNotificationDropdownItems() {
   const container = document.getElementById("notifListContainer");
   if (!container) return;
-  container.innerHTML = visibleNotifications().slice(0, 10).map((n) => `<div class="notif-item notif-item--${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><span class="notif-event-dot"></span><div><div style="font-size:13px;color:var(--text-primary);font-weight:600;">${n.title}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${n.desc} · ${formatNotificationTime(n.createdAt, n.time)}</div></div></div>`).join("");
+  container.innerHTML = visibleNotifications().slice(0, 10).map((n) => `<div class="notif-item notif-item--${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><span class="notif-event-dot"></span><div><div style="font-size:13px;color:var(--text-primary);font-weight:600;">${n.title}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${notificationCardSummary(n)} · ${formatNotificationTime(n.createdAt, n.time)}</div></div></div>`).join("");
 }
 
 function showToast(message, type = "success") {
