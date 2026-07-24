@@ -846,7 +846,6 @@ function switchView(viewName) {
   }
 
   if (viewName === "staff") { renderStaffTable(); }
-  if (viewName === "staff-chat") { renderStaffChats(); }
 
   if (viewName === "notifications") { renderNotificationsPage(); }
   // Handle rendering and updating messages count when entering Messages tab
