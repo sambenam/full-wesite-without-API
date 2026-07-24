@@ -359,6 +359,20 @@ let appState = {
   messages: loadDynamicMessages(),
 };
 
+function formatNotificationTime(timestamp, fallback = "همین حالا") {
+  if (!timestamp) return fallback;
+  const minutes = Math.floor((Date.now() - Number(timestamp)) / 60000);
+  if (minutes < 1) return "همین حالا";
+  if (minutes < 60) return toPersianDigits(minutes) + " دقیقه پیش";
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return toPersianDigits(hours) + " ساعت پیش";
+  const days = Math.floor(hours / 24);
+  if (days < 7) return toPersianDigits(days) + " روز پیش";
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return toPersianDigits(weeks) + " هفته پیش";
+  return toPersianDigits(Math.floor(days / 30)) + " ماه پیش";
+}
+
 const notificationThemes = { purchase: "green", user: "blue", staff: "yellow", report: "red", deletion: "black" };
 // Frontend permission guard. The backend must apply this same policy when it delivers notification records.
 function currentNotificationRole() { const member = appState.users.find(u => u.id === currentStaffProfileId); return member ? member.role : (currentAdminUserRole === "admin" ? "ادمین" : "مدیر سایت"); }
@@ -368,7 +382,7 @@ let bellTimer = null;
 function pushAdminNotification(type, title, desc, details = {}) {
   const theme = notificationThemes[type] || "blue";
   if (!canReceiveNotification({ type })) return null;
-  const notification = { id: Date.now(), type, theme, title, desc, time: "همین حالا", unread: true, fresh: true, details };
+  const notification = { id: Date.now(), type, theme, title, desc, time: "همین حالا", createdAt: Date.now(), unread: true, fresh: true, details };
   appState.notifications.unshift(notification);
   activateNotificationBell(theme);
   renderNotificationDropdownItems(); renderNotificationsPage();
@@ -402,7 +416,7 @@ function activateNotificationBell(theme) {
 }
 function renderNotificationsPage() {
   const container = document.getElementById("notificationsPageList"); if (!container) return;
-  container.innerHTML = visibleNotifications().map(n => `<div class="notification-item notification-${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><i class="fas ${n.type === 'purchase' ? 'fa-circle-check' : n.type === 'user' ? 'fa-user-plus' : n.type === 'staff' ? 'fa-user-gear' : n.type === 'deletion' ? 'fa-user-slash' : 'fa-flag'}"></i><div><strong>${n.title}</strong><p>${n.desc}</p><small>${n.time}</small></div></div>`).join("") || '<p style="text-align:center;padding:2rem">اعلانی وجود ندارد.</p>';
+  container.innerHTML = visibleNotifications().map(n => `<div class="notification-item notification-${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><i class="fas ${n.type === 'purchase' ? 'fa-circle-check' : n.type === 'user' ? 'fa-user-plus' : n.type === 'staff' ? 'fa-user-gear' : n.type === 'deletion' ? 'fa-user-slash' : 'fa-flag'}"></i><div><strong>${n.title}</strong><p>${n.desc}</p><small>${formatNotificationTime(n.createdAt, n.time)}</small></div></div>`).join("") || '<p style="text-align:center;padding:2rem">اعلانی وجود ندارد.</p>';
 }
 window.pushAdminNotification = pushAdminNotification;
 // Receives real order/user events written by other pages of the same site (checkout/sign-up).
@@ -1820,7 +1834,7 @@ function initModals() {
         status: "فعال"
       };
 
-      appState.users.unshift(newUser);
+      appState.users.push(newUser);
 
       // Save to localStorage
       localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
@@ -1977,7 +1991,7 @@ function initNotifications() {
 function renderNotificationDropdownItems() {
   const container = document.getElementById("notifListContainer");
   if (!container) return;
-  container.innerHTML = visibleNotifications().slice(0, 10).map((n) => `<div class="notif-item notif-item--${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><span class="notif-event-dot"></span><div><div style="font-size:13px;color:var(--text-primary);font-weight:600;">${n.title}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${n.desc} · ${n.time}</div></div></div>`).join("");
+  container.innerHTML = visibleNotifications().slice(0, 10).map((n) => `<div class="notif-item notif-item--${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><span class="notif-event-dot"></span><div><div style="font-size:13px;color:var(--text-primary);font-weight:600;">${n.title}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${n.desc} · ${formatNotificationTime(n.createdAt, n.time)}</div></div></div>`).join("");
 }
 
 function showToast(message, type = "success") {
