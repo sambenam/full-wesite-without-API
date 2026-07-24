@@ -366,13 +366,23 @@ function pushAdminNotification(type, title, desc, details = {}) {
   renderNotificationDropdownItems(); renderNotificationsPage();
   return notification;
 }
+// Backend integration point: map the API response to { type, title, desc, details }.
+// Each event type owns its display schema, so adding API fields never affects other notification types.
+const notificationDetailSchemas = {
+  purchase: { label: "سفارش و پرداخت", icon: "fa-bag-shopping", fields: ["شماره سفارش", "خریدار", "ایمیل خریدار", "تلفن خریدار", "محصول", "مبلغ", "وضعیت پرداخت", "روش پرداخت", "کد پیگیری", "تاریخ ثبت"] },
+  user: { label: "ثبت‌نام کاربر", icon: "fa-user-plus", fields: ["نام کاربر", "ایمیل", "تلفن", "روش ثبت‌نام", "تاریخ ثبت‌نام"] },
+  staff: { label: "تغییرات پروفایل ادمین", icon: "fa-user-gear", fields: ["کاربر", "نقش", "موارد تغییرکرده", "زمان تغییر", "نشانی IP"] },
+  report: { label: "گزارش تخلف", icon: "fa-flag", fields: ["شناسه گزارش", "گزارش‌دهنده", "کاربر/مورد گزارش‌شده", "نوع گزارش", "درجه اهمیت", "شرح", "تاریخ"] }
+};
 function openNotificationDetails(id) {
   const n = appState.notifications.find(item => String(item.id) === String(id)); if (!n) return;
-  const labels = { purchase: "سفارش و پرداخت", user: "ثبت‌نام کاربر", staff: "تغییرات پروفایل", report: "گزارش تخلف" };
-  document.getElementById("notificationDetailType").textContent = labels[n.type] || "جزئیات رویداد";
+  const schema = notificationDetailSchemas[n.type] || { label: "جزئیات رویداد", icon: "fa-bell", fields: [] };
+  document.getElementById("notificationDetailType").innerHTML = `<i class="fas ${schema.icon}"></i> ${schema.label}`;
   document.getElementById("notificationDetailTitle").textContent = n.title;
-  const details = n.details || {}, fields = Object.keys(details);
-  document.getElementById("notificationDetailBody").innerHTML = `<p class="notification-detail-desc">${n.desc}</p>` + (fields.length ? `<div class="notification-detail-grid">${fields.map(key => `<div><small>${key}</small><strong>${details[key]}</strong></div>`).join("")}</div>` : '<p class="notification-detail-empty">جزئیات تکمیلی این رویداد از سرور دریافت نشده است.</p>');
+  const details = n.details || {}, fields = schema.fields.filter(key => details[key] !== undefined && details[key] !== null && details[key] !== "");
+  const extraFields = Object.keys(details).filter(key => !schema.fields.includes(key));
+  const renderField = key => `<div><small>${key}</small><strong>${details[key]}</strong></div>`;
+  document.getElementById("notificationDetailBody").innerHTML = `<p class="notification-detail-desc">${n.desc}</p>` + (fields.length ? `<div class="notification-detail-grid">${fields.map(renderField).join("")}</div>` : '<p class="notification-detail-empty">جزئیات تکمیلی این رویداد از سرور دریافت نشده است.</p>') + (extraFields.length ? `<div class="notification-extra-fields">${extraFields.map(renderField).join("")}</div>` : "");
   openModal("notificationDetailModal");
 }
 window.openNotificationDetails = openNotificationDetails;
@@ -437,10 +447,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Temporary four-event notification stack for visual testing (newest item is the order).
   setTimeout(function () {
     appState.notifications = [];
-    pushAdminNotification("staff", "ویرایش پروفایل ادمین", "ادمین «محمد رضایی» اطلاعات پروفایل خود را به‌روزرسانی کرد.", { "کاربر": "محمد رضایی", "موارد تغییرکرده": "نام کاربری و تلفن همراه", "تاریخ": "۱۴۰۵/۰۵/۰۳ - ۱۰:۴۵" });
-    pushAdminNotification("user", "ثبت‌نام کاربر جدید", "کاربر «سارا محمدی» به سامانه پیوست.", { "نام کاربر": "سارا محمدی", "ایمیل": "sara@example.com", "تلفن": "۰۹۱۲۹۸۷۶۵۴۳", "تاریخ ثبت‌نام": "۱۴۰۵/۰۵/۰۳ - ۱۰:۳۰" });
-    pushAdminNotification("report", "گزارش تخلف جدید", "کاربر «علی احمدی» یک گزارش تخلف ثبت کرده است.", { "گزارش‌دهنده": "علی احمدی", "نوع گزارش": "تخلف در محتوا", "شرح": "گزارش آزمایشی برای بررسی سیستم اعلان", "تاریخ": "۱۴۰۵/۰۵/۰۳ - ۱۰:۳۵" });
-    pushAdminNotification("purchase", "سفارش جدید ثبت شد", "سفارش شماره #۷۴۸۳۳ با موفقیت ثبت شد.", { "شماره سفارش": "#۷۴۸۳۳", "خریدار": "علی احمدی", "محصول": "دوره حسابداری مقدماتی", "مبلغ": "۹۵,۰۰۰ تومان", "وضعیت پرداخت": "موفق", "تاریخ ثبت": "۱۴۰۵/۰۵/۰۳ - ۱۰:۴۰" });
+    pushAdminNotification("staff", "ویرایش پروفایل ادمین", "ادمین «محمد رضایی» اطلاعات پروفایل خود را به‌روزرسانی کرد.", { "کاربر": "محمد رضایی", "نقش": "ادمین", "موارد تغییرکرده": "نام کاربری و تلفن همراه", "زمان تغییر": "۱۴۰۵/۰۵/۰۳ - ۱۰:۴۵", "نشانی IP": "185.73.12.44" });
+    pushAdminNotification("user", "ثبت‌نام کاربر جدید", "کاربر «سارا محمدی» به سامانه پیوست.", { "نام کاربر": "سارا محمدی", "ایمیل": "sara@example.com", "تلفن": "۰۹۱۲۹۸۷۶۵۴۳", "روش ثبت‌نام": "فرم ثبت‌نام سایت", "تاریخ ثبت‌نام": "۱۴۰۵/۰۵/۰۳ - ۱۰:۳۰" });
+    pushAdminNotification("report", "گزارش تخلف جدید", "کاربر «علی احمدی» یک گزارش تخلف ثبت کرده است.", { "شناسه گزارش": "RPT-۱۰۴۲", "گزارش‌دهنده": "علی احمدی", "کاربر/مورد گزارش‌شده": "محتوای دوره حسابداری مقدماتی", "نوع گزارش": "تخلف در محتوا", "درجه اهمیت": "متوسط", "شرح": "گزارش آزمایشی برای بررسی سیستم اعلان", "تاریخ": "۱۴۰۵/۰۵/۰۳ - ۱۰:۳۵" });
+    pushAdminNotification("purchase", "سفارش جدید ثبت شد", "سفارش شماره #۷۴۸۳۳ با موفقیت ثبت شد.", { "شماره سفارش": "#۷۴۸۳۳", "خریدار": "علی احمدی", "ایمیل خریدار": "ali@example.com", "تلفن خریدار": "۰۹۱۲۱۲۳۴۵۶۷", "محصول": "دوره حسابداری مقدماتی", "مبلغ": "۹۵,۰۰۰ تومان", "وضعیت پرداخت": "موفق", "روش پرداخت": "درگاه زرین‌پال", "کد پیگیری": "A-۴۸۲۱۹", "تاریخ ثبت": "۱۴۰۵/۰۵/۰۳ - ۱۰:۴۰" });
   }, 700);
   initModals();
   initSearch();
