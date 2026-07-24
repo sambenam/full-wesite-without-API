@@ -399,6 +399,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (document.getElementById("setAdminName")) document.getElementById("setAdminName").value = sysSettings.adminName || "";
   if (document.getElementById("setAdminAvatar")) document.getElementById("setAdminAvatar").value = sysSettings.adminAvatar || "";
+  const activeStaff = appState.users.find(u => u.id === currentStaffProfileId) || {};
+  if (document.getElementById("profileEmail")) document.getElementById("profileEmail").value = activeStaff.email || "manager@example.com";
+  if (document.getElementById("profilePhone")) document.getElementById("profilePhone").value = activeStaff.phone || "09120000000";
+  if (document.getElementById("profileAvatarPreview")) document.getElementById("profileAvatarPreview").src = sysSettings.adminAvatar || "https://i.pravatar.cc/150?img=33";
 
   const sideName = document.getElementById("sidebarUserName");
   const sideAvatar = document.getElementById("sidebarAvatar");
@@ -475,6 +479,8 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const name = document.getElementById("setAdminName").value.trim();
       const avatar = document.getElementById("setAdminAvatar").value.trim();
+      const profileEmail = document.getElementById("profileEmail").value.trim();
+      const profilePhone = document.getElementById("profilePhone").value.trim();
       const currentPasswordInput = document.getElementById("setAdminCurrentPassword").value;
       
       const isChangingPassword = newPasswordSection && newPasswordSection.style.display === "block";
@@ -501,7 +507,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (sideNameEl) sideNameEl.textContent = name;
         if (sideAvatarEl) sideAvatarEl.src = avatar;
         // Keep the access-management record and its audit trail in sync with profile edits.
-        applyStaffProfileChanges(currentStaffProfileId, { name: name });
+        applyStaffProfileChanges(currentStaffProfileId, { name: name, email: profileEmail, phone: profilePhone });
 
         if (isChangingPassword && newPassword) {
           localStorage.setItem("irHesabdarAdminPassword", newPassword);
@@ -552,6 +558,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+
+  const avatarInput = document.getElementById("profileAvatarFile");
+  const avatarChoose = document.getElementById("profilePhotoChoose");
+  if (avatarChoose && avatarInput) avatarChoose.addEventListener("click", () => avatarInput.click());
+  if (avatarInput) avatarInput.addEventListener("change", function () { const file = avatarInput.files && avatarInput.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function (event) { const src = event.target.result; document.getElementById("setAdminAvatar").value = src; document.getElementById("profileAvatarPreview").src = src; }; reader.readAsDataURL(file); });
 
   // Handle direct hash navigation on page load
   const currentHash = window.location.hash;

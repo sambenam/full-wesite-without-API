@@ -99,7 +99,7 @@
         <div
           class="user-profile"
           id="userProfileTrigger"
-          onclick="openModal('editProfileModal')"
+          onclick="switchView('profile')"
           style="cursor: pointer"
           title="ویرایش پروفایل مدیر کل"
         >
@@ -185,7 +185,7 @@
             class="header-btn"
             id="profileHeaderBtn"
             title="پروفایل کاربری"
-            onclick="switchView('settings')"
+            onclick="switchView('profile')"
           >
             <i class="fas fa-user-circle"></i>
           </button>
@@ -625,63 +625,14 @@
               </form>
             </div>
 
-            <!-- CARD 3: ADMIN PROFILE & SECURITY -->
-            <div class="glass-card" style="min-height: 420px; display: flex; flex-direction: column; justify-content: space-between;">
-              <form id="settingsAdminForm" style="text-align: right; direction: rtl; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
-                <div>
-                  <div class="card-header" style="margin-bottom: 1rem;"><h2>👤 مشخصات کاربری و امنیت من</h2></div>
-                  <div class="form-group" style="margin-bottom: 1rem;">
-                    <label>نام نمایشی من</label>
-                    <input type="text" id="setAdminName" class="form-control" value="مدیر کل سایت" required />
-                  </div>
-                  <div class="form-group" style="margin-bottom: 1rem;">
-                    <label>آواتار من</label>
-                    <input type="text" id="setAdminAvatar" class="form-control" value="https://i.pravatar.cc/150?img=33" required />
-                  </div>
-                  
-                  <!-- Current Password with Eye Toggle -->
-                  <div class="form-group" style="margin-bottom: 1rem; position: relative;">
-                    <label>رمز عبور فعلی</label>
-                    <div style="position: relative; display: flex; align-items: center;">
-                      <input type="password" id="setAdminCurrentPassword" class="form-control" placeholder="رمز عبور فعلی" style="width: 100%; padding-left: 40px; border-radius: 8px;" />
-                      <i class="fas fa-eye toggle-password-settings" data-target="setAdminCurrentPassword" style="position: absolute; left: 12px; cursor: pointer; color: var(--text-secondary); font-size: 14px; transition: color 0.3s;"></i>
-                    </div>
-                    <div id="passwordChangeAlert" style="display: none; color: #ff3b30; font-size: 11px; margin-top: 5px; font-weight: bold; direction: rtl;"></div>
-                  </div>
 
-                  <!-- Trigger to Toggle New Password -->
-                  <div style="margin-bottom: 1rem; text-align: right;">
-                    <button type="button" id="toggleNewPasswordBtn" style="background: none; border: none; color: var(--primary); font-weight: bold; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; padding: 0;">
-                      <i class="fas fa-key"></i> <span>🔑 تمایل به تغییر رمز عبور دارم</span>
-                    </button>
-                  </div>
-
-                  <!-- Collapsible New Password Fields -->
-                  <div id="newPasswordSection" style="display: none; background: rgba(0,122,255,0.03); border: 1px dashed rgba(0,122,255,0.15); padding: 15px; border-radius: 12px; margin-bottom: 1.5rem;">
-                    <div class="form-group" style="margin-bottom: 1rem; text-align: right;">
-                      <label>رمز عبور جدید (ورود به پنل)</label>
-                      <div style="position: relative; display: flex; align-items: center;">
-                        <input type="password" id="setAdminPassword" class="form-control" placeholder="رمز عبور جدید" style="width: 100%; padding-left: 40px; border-radius: 8px;" />
-                        <i class="fas fa-eye toggle-password-settings" data-target="setAdminPassword" style="position: absolute; left: 12px; cursor: pointer; color: var(--text-secondary); font-size: 14px; transition: color 0.3s;"></i>
-                      </div>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0; text-align: right;">
-                      <label>تکرار رمز عبور جدید</label>
-                      <div style="position: relative; display: flex; align-items: center;">
-                        <input type="password" id="setAdminPasswordConfirm" class="form-control" placeholder="تکرار رمز عبور جدید" style="width: 100%; padding-left: 40px; border-radius: 8px;" />
-                        <i class="fas fa-eye toggle-password-settings" data-target="setAdminPasswordConfirm" style="position: absolute; left: 12px; cursor: pointer; color: var(--text-secondary); font-size: 14px; transition: color 0.3s;"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <button type="submit" class="btn-primary" style="width: 100%; margin-top: auto; cursor: pointer;">به‌روزرسانی حساب من</button>
-              </form>
-            </div>
 
           </div>
         </div>
       </div>
+
+      <!-- VIEW: MY PROFILE -->
+      <div id="view-profile" class="admin-view"><div class="dashboard-content"><div class="page-title"><h1>پروفایل من</h1><p>اطلاعات شخصی و امنیت حساب کاربری</p></div><div class="profile-layout"><section class="glass-card profile-identity-card"><div class="profile-avatar-wrap"><img id="profileAvatarPreview" src="https://i.pravatar.cc/150?img=33" alt="تصویر پروفایل"><label for="profileAvatarFile" class="profile-avatar-edit"><i class="fas fa-camera"></i></label><input id="profileAvatarFile" type="file" accept="image/*" hidden></div><h2 id="profileHeadingName">مدیر کل سایت</h2><p>حساب کاربری پنل مدیریت</p><small><i class="fas fa-shield-halved"></i> اطلاعات شما محرمانه نگه داشته می‌شود</small></section><section class="glass-card profile-form-card"><form id="settingsAdminForm"><div class="profile-form-header"><h2>اطلاعات حساب و امنیت</h2><span>ویرایش مشخصات و رمز عبور</span></div><div class="profile-info-grid"><div class="form-group"><label>نام کاربری</label><input type="text" id="setAdminName" class="form-control" required></div><div class="form-group"><label>ایمیل</label><input type="email" id="profileEmail" class="form-control" required></div><div class="form-group"><label>تلفن همراه</label><input type="text" id="profilePhone" class="form-control" required></div><div class="form-group profile-photo-field"><label>تصویر پروفایل</label><button type="button" id="profilePhotoChoose" class="btn-secondary"><i class="fas fa-image"></i> انتخاب تصویر از دستگاه</button><input type="hidden" id="setAdminAvatar"></div></div><div class="profile-security-box"><h3><i class="fas fa-lock"></i> امنیت حساب</h3><div class="form-group"><label>رمز عبور فعلی</label><div class="profile-password-wrap"><input type="password" id="setAdminCurrentPassword" class="form-control" placeholder="رمز عبور فعلی"><i class="fas fa-eye toggle-password-settings" data-target="setAdminCurrentPassword"></i></div><div id="passwordChangeAlert"></div></div><button type="button" id="toggleNewPasswordBtn" class="profile-change-password"><i class="fas fa-key"></i> تمایل به تغییر رمز عبور دارم</button><div id="newPasswordSection" style="display:none"><div class="profile-info-grid"><div class="form-group"><label>رمز عبور جدید</label><div class="profile-password-wrap"><input type="password" id="setAdminPassword" class="form-control"><i class="fas fa-eye toggle-password-settings" data-target="setAdminPassword"></i></div></div><div class="form-group"><label>تکرار رمز عبور جدید</label><div class="profile-password-wrap"><input type="password" id="setAdminPasswordConfirm" class="form-control"><i class="fas fa-eye toggle-password-settings" data-target="setAdminPasswordConfirm"></i></div></div></div></div></div><button type="submit" class="btn-primary profile-save-btn">ذخیره تغییرات پروفایل</button></form></section></div></div></div>
 
       <!-- VIEW: SITE CONTENT -->
       <div id="view-site-content" class="admin-view">
