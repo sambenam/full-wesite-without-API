@@ -424,8 +424,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (recentlyUpdatedStaffId) setTimeout(function () { const id = recentlyUpdatedStaffId; recentlyUpdatedStaffId = null; delete recentStaffFieldChanges[id]; renderStaffTable(); }, 8000);
   initNotifications();
   renderNotificationsPage();
-  // Temporary visual test event: replace with the Support report submission hook later.
-  setTimeout(function () { pushAdminNotification("report", "گزارش تخلف جدید", "کاربر «علی احمدی» یک گزارش تخلف ثبت کرده است."); }, 700);
+  // Temporary four-event notification stack for visual testing (newest item is the order).
+  setTimeout(function () {
+    appState.notifications = [];
+    pushAdminNotification("staff", "ویرایش پروفایل ادمین", "ادمین «محمد رضایی» اطلاعات پروفایل خود را به‌روزرسانی کرد.");
+    pushAdminNotification("user", "ثبت‌نام کاربر جدید", "کاربر «سارا محمدی» به سامانه پیوست.");
+    pushAdminNotification("report", "گزارش تخلف جدید", "کاربر «علی احمدی» یک گزارش تخلف ثبت کرده است.");
+    pushAdminNotification("purchase", "سفارش جدید ثبت شد", "سفارش شماره #۷۴۸۳۳ با موفقیت ثبت شد.");
+  }, 700);
   initModals();
   initSearch();
 
@@ -1916,27 +1922,28 @@ function initNotifications() {
   if (btn && dropdown) {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      dropdown.classList.toggle("active");
+      const isOpen = dropdown.classList.toggle("active");
+      document.body.classList.toggle("notification-panel-open", isOpen);
       renderNotificationDropdownItems();
     });
 
     document.addEventListener("click", (e) => {
       if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
         dropdown.classList.remove("active");
+        document.body.classList.remove("notification-panel-open");
       }
     });
   }
 
   if (markAllBtn) {
-    markAllBtn.addEventListener("click", () => { dropdown.classList.remove("active"); switchView("notifications"); renderNotificationsPage(); });
+    markAllBtn.addEventListener("click", () => { dropdown.classList.remove("active"); document.body.classList.remove("notification-panel-open"); switchView("notifications"); renderNotificationsPage(); });
   }
 }
 
 function renderNotificationDropdownItems() {
   const container = document.getElementById("notifListContainer");
   if (!container) return;
-  container.innerHTML = appState.notifications.map((n) => `<div class="notif-item notif-item--${n.theme || 'blue'}"><span class="notif-event-dot ${n.fresh ? 'notif-event-dot--fresh' : ''}"></span><div><div style="font-size:13px;color:var(--text-primary);font-weight:600;">${n.title}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${n.desc} · ${n.time}</div></div></div>`).join("");
-  appState.notifications.forEach(n => { if (n.fresh) setTimeout(() => { n.fresh = false; renderNotificationDropdownItems(); }, 8000); });
+  container.innerHTML = appState.notifications.slice(0, 10).map((n) => `<div class="notif-item notif-item--${n.theme || 'blue'}"><span class="notif-event-dot"></span><div><div style="font-size:13px;color:var(--text-primary);font-weight:600;">${n.title}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${n.desc} · ${n.time}</div></div></div>`).join("");
 }
 
 function showToast(message, type = "success") {
