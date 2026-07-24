@@ -288,7 +288,7 @@ let recentStaffFieldChanges = { 2: ["name", "phone"] }; // cues used only on the
 let staffModalReviewChanges = { 2: ["name", "phone"] }; // a separate cue, retained for the later edit-modal review
 let pendingStaffProfileChanges = {}; // values stay old until the red review cue expires
 let currentStaffProfileId = 1; // will be set from the authenticated account when login/profile is connected
-function recordStaffChange(staffId, text) { const now = new Date().toLocaleString("fa-IR"); (staffAuditLogs[staffId] ||= []).unshift({ date: now, text: text }); localStorage.setItem("irHesabdarStaffAuditLogs", JSON.stringify(staffAuditLogs)); }
+function recordStaffChange(staffId, text, change = null) { const now = new Date().toLocaleString("fa-IR"); (staffAuditLogs[staffId] ||= []).unshift({ date: now, text: text, change: change }); localStorage.setItem("irHesabdarStaffAuditLogs", JSON.stringify(staffAuditLogs)); }
 function markStaffRecentlyUpdated(staffId, fields) {
   recentlyUpdatedStaffId = staffId;
   if (fields && fields.length) { recentStaffFieldChanges[staffId] = fields; staffModalReviewChanges[staffId] = fields.slice(); }
@@ -298,7 +298,8 @@ function markStaffRecentlyUpdated(staffId, fields) {
     const pending = pendingStaffProfileChanges[staffId];
     if (staff && pending) {
       const labels = { name: "نام کاربری", email: "ایمیل", phone: "شماره تلفن همراه" };
-      Object.keys(pending).forEach(field => { const before = staff[field] || "—"; staff[field] = pending[field]; recordStaffChange(staffId, `${labels[field] || field} خود را از «${before}» به «${pending[field]}» تغییر داد.`); });
+      const changedLabels = [];
+      Object.keys(pending).forEach(field => { const before = staff[field] || "—"; const after = pending[field]; staff[field] = after; const label = labels[field] || field; changedLabels.push(label); recordStaffChange(staffId, `${label} خود را تغییر داد.`, { label: label, before: before, after: after }); });
       localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
       delete pendingStaffProfileChanges[staffId];
     }
@@ -313,9 +314,11 @@ function applyStaffProfileChanges(staffId, changes) {
   const changed = {};
   Object.keys(changes || {}).forEach(function (field) { const value = String(changes[field] || "").trim(); if (value && String(staff[field] || "") !== value) changed[field] = value; });
   const fields = Object.keys(changed); if (!fields.length) return;
-  // Admin changes are deliberately staged: old values remain visible during the red review indicator.
-  if (staff.role === "ادمین") { pendingStaffProfileChanges[staffId] = changed; markStaffRecentlyUpdated(staffId, fields); pushAdminNotification("staff", "تغییر پروفایل ادمین", `ادمین «${staff.name}» اطلاعات پروفایل خود را به‌روزرسانی کرد.`); }
-  else { Object.assign(staff, changed); localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); renderStaffTable(); }
+  // All manager/admin profile changes are staged: old values remain visible during the red review indicator.
+  pendingStaffProfileChanges[staffId] = changed;
+  const profileLabels = { name: "نام کاربری", email: "ایمیل", phone: "تلفن همراه" };
+  pushAdminNotification("staff", "تغییر پروفایل عضو مدیریت", `«${staff.name}» ${fields.map(field => profileLabels[field]).join("، ")} را به‌روزرسانی کرد.`, { "کاربر": staff.name, "نقش": staff.role === "ادمین" ? "ادمین" : "مدیر", "موارد تغییرکرده": fields.map(field => profileLabels[field]).join("، "), "زمان تغییر": new Date().toLocaleString("fa-IR") });
+  markStaffRecentlyUpdated(staffId, fields);
 }
 window.applyStaffProfileChanges = applyStaffProfileChanges;
 
@@ -1067,7 +1070,7 @@ function editStaff(id) {
 function openStaffAuditModal() {
   const id = Number(document.getElementById("editStaffId").value), staff = appState.users.find(u => u.id === id), list = document.getElementById("staffAuditList");
   const entries = staffAuditLogs[id] || [];
-  list.innerHTML = entries.length ? entries.map(entry => `<article class="staff-audit-item"><i class="fas fa-pen-to-square"></i><div><p><strong>${staff ? staff.name : "کاربر"}</strong> ${entry.text}</p><time>${entry.date}</time></div></article>`).join("") : '<p class="staff-audit-empty">تغییری برای این حساب ثبت نشده است.</p>';
+  list.innerHTML = entries.length ? entries.map(entry => `<article class="staff-audit-item"><i class="fas fa-pen-to-square"></i><div><p><strong>${staff ? staff.name : "کاربر"}</strong> ${entry.text}</p>${entry.change ? `<div class="staff-audit-change"><span><small>مقدار قبلی · ${entry.change.label}</small><b>${entry.change.before}</b></span><i class="fas fa-arrow-left"></i><span class="after"><small>مقدار جدید</small><b>${entry.change.after}</b></span></div>` : ""}<time>${entry.date}</time></div></article>`).join("") : '<p class="staff-audit-empty">تغییری برای این حساب ثبت نشده است.</p>';
   openModal("staffAuditModal");
 }
 
