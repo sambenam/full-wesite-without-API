@@ -314,7 +314,7 @@ function applyStaffProfileChanges(staffId, changes) {
   Object.keys(changes || {}).forEach(function (field) { const value = String(changes[field] || "").trim(); if (value && String(staff[field] || "") !== value) changed[field] = value; });
   const fields = Object.keys(changed); if (!fields.length) return;
   // Admin changes are deliberately staged: old values remain visible during the red review indicator.
-  if (staff.role === "ادمین") { pendingStaffProfileChanges[staffId] = changed; markStaffRecentlyUpdated(staffId, fields); }
+  if (staff.role === "ادمین") { pendingStaffProfileChanges[staffId] = changed; markStaffRecentlyUpdated(staffId, fields); pushAdminNotification("staff", "تغییر پروفایل ادمین", `ادمین «${staff.name}» اطلاعات پروفایل خود را به‌روزرسانی کرد.`); }
   else { Object.assign(staff, changed); localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); renderStaffTable(); }
 }
 window.applyStaffProfileChanges = applyStaffProfileChanges;
@@ -355,6 +355,32 @@ let appState = {
   ],
   messages: loadDynamicMessages(),
 };
+
+const notificationThemes = { purchase: "green", user: "blue", staff: "yellow", report: "red" };
+let bellTimer = null;
+function pushAdminNotification(type, title, desc) {
+  const theme = notificationThemes[type] || "blue";
+  const notification = { id: Date.now(), type, theme, title, desc, time: "همین حالا", unread: true, fresh: true };
+  appState.notifications.unshift(notification);
+  activateNotificationBell(theme);
+  renderNotificationDropdownItems(); renderNotificationsPage();
+  return notification;
+}
+function activateNotificationBell(theme) {
+  const bell = document.getElementById("notificationBtn"); if (!bell) return;
+  clearTimeout(bellTimer); bell.classList.remove("bell-green","bell-blue","bell-yellow","bell-red"); bell.classList.add("bell-" + theme);
+  bellTimer = setTimeout(() => bell.classList.remove("bell-green","bell-blue","bell-yellow","bell-red"), 10000);
+}
+function renderNotificationsPage() {
+  const container = document.getElementById("notificationsPageList"); if (!container) return;
+  container.innerHTML = appState.notifications.map(n => `<div class="notification-item notification-${n.theme || 'blue'}"><i class="fas ${n.type === 'purchase' ? 'fa-circle-check' : n.type === 'user' ? 'fa-user-plus' : n.type === 'staff' ? 'fa-user-gear' : 'fa-flag'}"></i><div><strong>${n.title}</strong><p>${n.desc}</p><small>${n.time}</small></div></div>`).join("") || '<p style="text-align:center;padding:2rem">اعلانی وجود ندارد.</p>';
+}
+window.pushAdminNotification = pushAdminNotification;
+// Receives real order/user events written by other pages of the same site (checkout/sign-up).
+window.addEventListener("storage", function (event) {
+  if (event.key === "irHesabdarOrders" && event.newValue) { try { const incoming = JSON.parse(event.newValue); const known = new Set(appState.orders.map(o => String(o.id))); incoming.filter(o => !known.has(String(o.id))).forEach(o => pushAdminNotification("purchase", o.status === "success" ? "پرداخت موفق" : "سفارش جدید", `سفارش ${o.id || "جدید"} ثبت شد.`)); appState.orders = incoming; } catch(e) {} }
+  if (event.key === "irHesabdarUsers" && event.newValue) { try { const incoming = JSON.parse(event.newValue); const known = new Set(appState.users.map(u => String(u.id))); incoming.filter(u => !known.has(String(u.id)) && u.role === "کاربر عادی").forEach(u => pushAdminNotification("user", "کاربر جدید", `کاربر «${u.name || "جدید"}» ثبت‌نام کرد.`)); appState.users = incoming; } catch(e) {} }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- MESSAGE SHORTCUT AND PANEL TOGGLES ---
@@ -397,6 +423,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Demo indicator expires after a short review interval.
   if (recentlyUpdatedStaffId) setTimeout(function () { const id = recentlyUpdatedStaffId; recentlyUpdatedStaffId = null; delete recentStaffFieldChanges[id]; renderStaffTable(); }, 8000);
   initNotifications();
+  renderNotificationsPage();
   initModals();
   initSearch();
 
@@ -792,6 +819,7 @@ function switchView(viewName) {
 
   if (viewName === "staff") { renderStaffTable(); }
 
+  if (viewName === "notifications") { renderNotificationsPage(); }
   // Handle rendering and updating messages count when entering Messages tab
   if (viewName === "messages") {
     renderMessages();
@@ -1898,28 +1926,15 @@ function initNotifications() {
   }
 
   if (markAllBtn) {
-    markAllBtn.addEventListener("click", () => {
-      appState.notifications.forEach((n) => (n.unread = false));
-      renderNotificationDropdownItems();
-      document.querySelector(".notification-dot").style.display = "none";
-      showToast("تمام اعلان‌ها خوانده شدند", "success");
-    });
+    markAllBtn.addEventListener("click", () => { dropdown.classList.remove("active"); switchView("notifications"); renderNotificationsPage(); });
   }
 }
 
 function renderNotificationDropdownItems() {
   const container = document.getElementById("notifListContainer");
   if (!container) return;
-  container.innerHTML = appState.notifications
-    .map(
-      (n) => `
-        <div class="notif-item" style="${n.unread ? "background: rgba(0,122,255,0.08); font-weight: 600;" : ""}">
-            <div style="font-size: 13px; color: var(--text-primary);">${n.title}: ${n.desc}</div>
-            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${n.time}</div>
-        </div>
-    `,
-    )
-    .join("");
+  container.innerHTML = appState.notifications.map((n) => `<div class="notif-item notif-item--${n.theme || 'blue'}"><span class="notif-event-dot ${n.fresh ? 'notif-event-dot--fresh' : ''}"></span><div><div style="font-size:13px;color:var(--text-primary);font-weight:600;">${n.title}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${n.desc} · ${n.time}</div></div></div>`).join("");
+  appState.notifications.forEach(n => { if (n.fresh) setTimeout(() => { n.fresh = false; renderNotificationDropdownItems(); }, 8000); });
 }
 
 function showToast(message, type = "success") {
