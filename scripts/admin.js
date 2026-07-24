@@ -529,6 +529,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const sideAvatarEl = document.getElementById("sidebarAvatar");
         if (sideNameEl) sideNameEl.textContent = name;
         if (sideAvatarEl) sideAvatarEl.src = avatar;
+        const profileHeading = document.getElementById("profileHeadingName");
+        if (profileHeading) profileHeading.textContent = name;
         // Keep the access-management record and its audit trail in sync with profile edits.
         applyStaffProfileChanges(currentStaffProfileId, { name: name, email: profileEmail, phone: profilePhone });
 
