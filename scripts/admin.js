@@ -424,6 +424,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (recentlyUpdatedStaffId) setTimeout(function () { const id = recentlyUpdatedStaffId; recentlyUpdatedStaffId = null; delete recentStaffFieldChanges[id]; renderStaffTable(); }, 8000);
   initNotifications();
   renderNotificationsPage();
+  // Temporary visual test event: replace with the Support report submission hook later.
+  setTimeout(function () { pushAdminNotification("report", "گزارش تخلف جدید", "کاربر «علی احمدی» یک گزارش تخلف ثبت کرده است."); }, 700);
   initModals();
   initSearch();
 
