@@ -2344,26 +2344,3 @@ function downloadDetailedBestsellersReport() {
   document.body.removeChild(link);
   showToast("گزارش پرفروش‌ترین محصولات با موفقیت دانلود شد.", "success");
 }
-
-// Private staff chat repository. Replace these localStorage methods with API calls later; the participant filter stays unchanged.
-const staffChatStore = {
-  key: "irHesabdarPrivateStaffChats",
-  all() { try { return JSON.parse(localStorage.getItem(this.key)) || []; } catch(e) { return []; } },
-  save(chats) { localStorage.setItem(this.key, JSON.stringify(chats)); },
-  visibleTo(memberId) { return this.all().filter(c => c.participants.includes(memberId)); },
-  create(participants) { const chats=this.all(); let chat=chats.find(c=>c.participants.length===2&&participants.every(id=>c.participants.includes(id))); if(!chat){chat={id:"staff-chat-"+Date.now(),participants,messages:[],updatedAt:Date.now()};chats.unshift(chat);this.save(chats)} return chat; },
-  message(id, message) { const chats=this.all(), chat=chats.find(c=>c.id===id); if(chat){chat.messages.push(message);chat.updatedAt=Date.now();this.save(chats)} return chat; }
-};
-let activeStaffChatId = null;
-function currentChatMember() { return appState.users.find(u => u.id === currentStaffProfileId) || {id:currentStaffProfileId,name:"کاربر مدیریت",role:"ادمین"}; }
-function renderStaffChats() {
- const threadBox=document.getElementById("staffChatThreads"), empty=document.getElementById("staffChatEmpty"), convo=document.getElementById("staffChatConversation"); if(!threadBox)return;
- const me=currentChatMember(), chats=staffChatStore.visibleTo(me.id).sort((a,b)=>b.updatedAt-a.updatedAt);
- threadBox.innerHTML=chats.length?chats.map(chat=>{const otherId=chat.participants.find(id=>id!==me.id), other=appState.users.find(u=>u.id===otherId)||{name:"عضو حذف‌شده",role:"—"},last=chat.messages.at(-1);return `<button class="staff-chat-thread ${chat.id===activeStaffChatId?'active':''}" onclick="openStaffChat('${chat.id}')"><span class="staff-chat-thread-avatar"><i class="fas fa-user"></i></span><span><strong>${other.name}</strong><small>${other.role} · ${last?last.text:'بدون پیام'}</small></span></button>`}).join(""):'<p class="staff-chat-no-threads">هنوز گفتگویی ندارید.</p>';
- if(!activeStaffChatId){empty.hidden=false;convo.hidden=true;return} const chat=chats.find(c=>c.id===activeStaffChatId);if(!chat){activeStaffChatId=null;renderStaffChats();return} empty.hidden=true;convo.hidden=false; const other=appState.users.find(u=>u.id===chat.participants.find(id=>id!==me.id))||{};document.getElementById("staffChatHeader").innerHTML=`<div><i class="fas fa-user-shield"></i> <strong>${other.name||'—'}</strong><small>${other.role||''} · گفتگوی خصوصی</small></div>`;document.getElementById("staffChatMessages").innerHTML=chat.messages.map(m=>`<div class="staff-chat-bubble ${m.senderId===me.id?'mine':'theirs'}"><p>${m.text}</p><small>${m.time}</small></div>`).join("");
-}
-function openStaffChat(id){activeStaffChatId=id;renderStaffChats();}
-function openNewStaffChat(){const me=currentChatMember(), list=document.getElementById("staffChatRecipientList");const people=appState.users.filter(u=>u.id!==me.id&&(u.role==="مدیر سایت"||u.role==="مدیر سیستم"||u.role==="ادمین"));list.innerHTML=people.map(u=>`<button type="button" onclick="startStaffChat(${u.id})"><span><i class="fas fa-user-shield"></i></span><div><strong>${u.name}</strong><small>${u.role}</small></div><i class="fas fa-chevron-left"></i></button>`).join("")||'<p>عضو دیگری برای گفتگو وجود ندارد.</p>';openModal("newStaffChatModal");}
-function startStaffChat(recipientId){const chat=staffChatStore.create([currentChatMember().id,recipientId]);activeStaffChatId=chat.id;closeModal("newStaffChatModal");renderStaffChats();}
-window.openStaffChat=openStaffChat;window.startStaffChat=startStaffChat;
-document.addEventListener("DOMContentLoaded",()=>{document.getElementById("newStaffChatBtn")?.addEventListener("click",openNewStaffChat);document.getElementById("staffChatForm")?.addEventListener("submit",e=>{e.preventDefault();const input=document.getElementById("staffChatText"),text=input.value.trim();if(!text||!activeStaffChatId)return;const me=currentChatMember();staffChatStore.message(activeStaffChatId,{id:Date.now(),senderId:me.id,text,time:new Date().toLocaleTimeString("fa-IR",{hour:"2-digit",minute:"2-digit"})});input.value="";renderStaffChats();});});
