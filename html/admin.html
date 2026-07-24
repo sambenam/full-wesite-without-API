@@ -157,6 +157,8 @@
             </div>
           </div>
 
+          <button class="header-btn" id="staffChatHeaderBtn" title="گفتگوی مدیران و ادمین‌ها" onclick="switchView('staff-chat')"><i class="fas fa-comments"></i></button>
+
           <div style="position: relative;">
             <button
               class="header-btn"
@@ -746,6 +748,10 @@
 
       <!-- VIEW: NOTIFICATIONS -->
       <div id="view-notifications" class="admin-view"><div class="dashboard-content"><div class="page-title"><h1>اعلان‌های سیستم</h1><p>رویدادهای جدید سفارش، کاربران و دسترسی‌ها</p></div><div class="glass-card"><div class="card-header"><h2>آخرین اعلان‌ها</h2></div><div id="notificationsPageList" class="notifications-list"></div></div></div></div>
+
+      <!-- VIEW: PRIVATE STAFF CHAT -->
+      <div id="view-staff-chat" class="admin-view"><div class="dashboard-content"><div class="page-title"><h1>گفتگوی خصوصی تیم مدیریت</h1><p>هر گفتگو فقط برای دو عضو انتخاب‌شده قابل مشاهده است.</p></div><div class="staff-chat-shell glass-card"><aside class="staff-chat-sidebar"><div class="staff-chat-sidebar-head"><h2>گفتگوها</h2><button class="btn-primary" id="newStaffChatBtn"><i class="fas fa-plus"></i> چت جدید</button></div><div id="staffChatThreads" class="staff-chat-threads"></div></aside><section class="staff-chat-main"><div id="staffChatEmpty" class="staff-chat-empty"><i class="fas fa-comments"></i><h3>یک گفتگو را انتخاب کنید</h3><p>برای شروع، مدیر موردنظر خود را انتخاب کنید.</p></div><div id="staffChatConversation" hidden><header class="staff-chat-header" id="staffChatHeader"></header><div class="staff-chat-messages" id="staffChatMessages"></div><form id="staffChatForm" class="staff-chat-composer"><input id="staffChatText" class="form-control" placeholder="پیام خود را بنویسید..." autocomplete="off"><button class="btn-primary" type="submit"><i class="fas fa-paper-plane"></i></button></form></div></section></div></div></div>
+      <div class="modal-overlay" id="newStaffChatModal"><div class="modal-box staff-chat-new-modal"><div class="modal-header"><h3>شروع گفتگوی خصوصی</h3><button class="modal-close" onclick="closeModal('newStaffChatModal')"><i class="fas fa-times"></i></button></div><p>فقط شما و فرد انتخاب‌شده به پیام‌های این گفتگو دسترسی خواهید داشت.</p><div id="staffChatRecipientList" class="staff-chat-recipient-list"></div></div></div>
 
       <!-- VIEW 7: MESSAGES -->
       <div id="view-messages" class="admin-view">
