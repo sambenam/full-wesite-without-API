@@ -286,7 +286,8 @@ let staffAuditLogs = (function () {
 let recentlyUpdatedStaffId = 2; // demo indicator
 let recentStaffFieldChanges = { 2: ["name", "phone"] }; // cues used only on the main list
 let staffModalReviewChanges = { 2: ["name", "phone"] }; // a separate cue, retained for the later edit-modal review
-let pendingStaffProfileChanges = {}; // values stay old until the red review cue expires
+let pendingStaffProfileChanges = (function(){ try{return JSON.parse(localStorage.getItem("irHesabdarStaffPendingProfileChanges")) || {}}catch(e){return {}} })(); // values remain old until a manager reviews them
+function savePendingStaffProfileChanges(){ localStorage.setItem("irHesabdarStaffPendingProfileChanges", JSON.stringify(pendingStaffProfileChanges)); }
 let currentStaffProfileId = 1; // will be set from the authenticated account when login/profile is connected
 function recordStaffChange(staffId, text, change = null) { const now = new Date().toLocaleString("fa-IR"); (staffAuditLogs[staffId] ||= []).unshift({ date: now, text: text, change: change }); localStorage.setItem("irHesabdarStaffAuditLogs", JSON.stringify(staffAuditLogs)); }
 function markStaffRecentlyUpdated(staffId, fields) {
@@ -301,7 +302,7 @@ function markStaffRecentlyUpdated(staffId, fields) {
       const changedLabels = [];
       Object.keys(pending).forEach(field => { const before = staff[field] || "—"; const after = pending[field]; staff[field] = after; const label = labels[field] || field; changedLabels.push(label); recordStaffChange(staffId, `${label} خود را تغییر داد.`, { label: label, before: before, after: after }); });
       localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users));
-      delete pendingStaffProfileChanges[staffId];
+      delete pendingStaffProfileChanges[staffId]; savePendingStaffProfileChanges();
     }
     if (recentlyUpdatedStaffId === staffId) recentlyUpdatedStaffId = null;
     delete recentStaffFieldChanges[staffId];
@@ -315,10 +316,9 @@ function applyStaffProfileChanges(staffId, changes) {
   Object.keys(changes || {}).forEach(function (field) { const value = String(changes[field] || "").trim(); if (value && String(staff[field] || "") !== value) changed[field] = value; });
   const fields = Object.keys(changed); if (!fields.length) return;
   // All manager/admin profile changes are staged: old values remain visible during the red review indicator.
-  pendingStaffProfileChanges[staffId] = changed;
+  pendingStaffProfileChanges[staffId] = changed; savePendingStaffProfileChanges();
   const profileLabels = { name: "نام کاربری", email: "ایمیل", phone: "تلفن همراه" };
   pushAdminNotification("staff", "تغییر پروفایل عضو مدیریت", `«${staff.name}» ${fields.map(field => profileLabels[field]).join("، ")} را به‌روزرسانی کرد.`, { "کاربر": staff.name, "نقش": staff.role === "ادمین" ? "ادمین" : "مدیر", "موارد تغییرکرده": fields.map(field => profileLabels[field]).join("، "), "زمان تغییر": new Date().toLocaleString("fa-IR") });
-  markStaffRecentlyUpdated(staffId, fields);
 }
 window.applyStaffProfileChanges = applyStaffProfileChanges;
 
@@ -359,7 +359,7 @@ let appState = {
   messages: loadDynamicMessages(),
 };
 
-const notificationThemes = { purchase: "green", user: "blue", staff: "yellow", report: "red" };
+const notificationThemes = { purchase: "green", user: "blue", staff: "yellow", report: "red", deletion: "black" };
 // Frontend permission guard. The backend must apply this same policy when it delivers notification records.
 function currentNotificationRole() { const member = appState.users.find(u => u.id === currentStaffProfileId); return member ? member.role : (currentAdminUserRole === "admin" ? "ادمین" : "مدیر سایت"); }
 function canReceiveNotification(notification) { return currentNotificationRole() !== "ادمین" || !["staff", "report"].includes(notification.type); }
@@ -380,6 +380,7 @@ const notificationDetailSchemas = {
   purchase: { label: "سفارش و پرداخت", icon: "fa-bag-shopping", fields: ["شماره سفارش", "خریدار", "ایمیل خریدار", "تلفن خریدار", "محصول", "مبلغ", "وضعیت پرداخت", "روش پرداخت", "کد پیگیری", "تاریخ ثبت"] },
   user: { label: "ثبت‌نام کاربر", icon: "fa-user-plus", fields: ["نام کاربر", "ایمیل", "تلفن", "روش ثبت‌نام", "تاریخ ثبت‌نام"] },
   staff: { label: "تغییرات پروفایل ادمین", icon: "fa-user-gear", fields: ["کاربر", "نقش", "موارد تغییرکرده", "زمان تغییر", "نشانی IP"] },
+  deletion: { label: "حذف حساب مدیریت", icon: "fa-user-slash", fields: ["حساب حذف‌شده", "نقش", "حذف‌کننده", "شناسه حذف‌کننده", "تاریخ"] },
   report: { label: "گزارش تخلف", icon: "fa-flag", fields: ["شناسه گزارش", "گزارش‌دهنده", "کاربر/مورد گزارش‌شده", "نوع گزارش", "درجه اهمیت", "شرح", "تاریخ"] }
 };
 function openNotificationDetails(id) {
@@ -396,12 +397,12 @@ function openNotificationDetails(id) {
 window.openNotificationDetails = openNotificationDetails;
 function activateNotificationBell(theme) {
   const bell = document.getElementById("notificationBtn"); if (!bell) return;
-  clearTimeout(bellTimer); bell.classList.remove("bell-green","bell-blue","bell-yellow","bell-red"); bell.classList.add("bell-" + theme);
-  bellTimer = setTimeout(() => bell.classList.remove("bell-green","bell-blue","bell-yellow","bell-red"), 10000);
+  clearTimeout(bellTimer); bell.classList.remove("bell-green","bell-blue","bell-yellow","bell-red","bell-black"); bell.classList.add("bell-" + theme);
+  bellTimer = setTimeout(() => bell.classList.remove("bell-green","bell-blue","bell-yellow","bell-red","bell-black"), 10000);
 }
 function renderNotificationsPage() {
   const container = document.getElementById("notificationsPageList"); if (!container) return;
-  container.innerHTML = visibleNotifications().map(n => `<div class="notification-item notification-${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><i class="fas ${n.type === 'purchase' ? 'fa-circle-check' : n.type === 'user' ? 'fa-user-plus' : n.type === 'staff' ? 'fa-user-gear' : 'fa-flag'}"></i><div><strong>${n.title}</strong><p>${n.desc}</p><small>${n.time}</small></div></div>`).join("") || '<p style="text-align:center;padding:2rem">اعلانی وجود ندارد.</p>';
+  container.innerHTML = visibleNotifications().map(n => `<div class="notification-item notification-${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><i class="fas ${n.type === 'purchase' ? 'fa-circle-check' : n.type === 'user' ? 'fa-user-plus' : n.type === 'staff' ? 'fa-user-gear' : n.type === 'deletion' ? 'fa-user-slash' : 'fa-flag'}"></i><div><strong>${n.title}</strong><p>${n.desc}</p><small>${n.time}</small></div></div>`).join("") || '<p style="text-align:center;padding:2rem">اعلانی وجود ندارد.</p>';
 }
 window.pushAdminNotification = pushAdminNotification;
 // Receives real order/user events written by other pages of the same site (checkout/sign-up).
@@ -853,7 +854,7 @@ function switchView(viewName) {
     renderAnalyticsView();
   }
 
-  if (viewName === "staff") { renderStaffTable(); }
+  if (viewName === "staff") { activatePendingStaffReviews(); renderStaffTable(); }
 
   if (viewName === "notifications") { renderNotificationsPage(); }
   // Handle rendering and updating messages count when entering Messages tab
@@ -1030,6 +1031,11 @@ function renderUsersTable() {
     </tr>`;
   }).join("") || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary);">کاربر عادی برای نمایش وجود ندارد.</td></tr>';
 }
+function activatePendingStaffReviews() {
+  if (currentNotificationRole() === "ادمین") return;
+  Object.keys(pendingStaffProfileChanges).forEach(id => { const fields = Object.keys(pendingStaffProfileChanges[id] || {}); if (fields.length && !recentStaffFieldChanges[id]) markStaffRecentlyUpdated(Number(id), fields); });
+}
+
 function renderStaffTable() {
   const tbody = document.querySelector("#staffManageTable tbody");
   if (!tbody) return;
@@ -1041,7 +1047,7 @@ function renderStaffTable() {
     return user && staffRank[user.role] && [user.id, user.name, user.email, user.phone, user.role].join(" ").toLowerCase().includes(query);
   }).sort(function (a, b) { return staffRank[a.role] - staffRank[b.role]; });
   tbody.innerHTML = staff.map(function (user) {
-    const locked = currentNotificationRole() === "ادمین"; const updated = !locked && recentlyUpdatedStaffId === user.id; return `<tr class="${window.pendingStaffDeletion && window.pendingStaffDeletion.id === user.id ? 'user-pending-delete' : ''}"><td>#${toPersianDigits(user.id)}${updated ? '<span class="staff-update-dot staff-update-dot--between" title="تغییر جدید ثبت شده"></span>' : ''}</td><td style="font-weight:500;"><span class="staff-field-value ${(!locked && (recentStaffFieldChanges[user.id] || []).includes('name')) ? 'staff-field-changed' : ''}">${user.name}</span><span class="staff-role-badge ${staffRank[user.role] === 1 ? 'manager' : 'admin'}">${user.role}</span></td><td class="user-contact-cell"><span class="staff-field-value ${(!locked && (recentStaffFieldChanges[user.id] || []).includes('email')) ? 'staff-field-changed' : ''}">${user.email || '—'}</span></td><td class="user-contact-cell"><span class="staff-field-value ${(!locked && (recentStaffFieldChanges[user.id] || []).includes('phone')) ? 'staff-field-changed' : ''}">${toPersianDigits(user.phone || '—')}</span></td><td><span class="status ${user.status === 'فعال' ? 'success' : 'cancelled'}">${user.status}</span></td><td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;${locked?'opacity:.45;pointer-events:none;':''}" onclick="editStaff(${user.id})">بررسی و ویرایش</button></td></tr>`;
+    const locked = currentNotificationRole() === "ادمین"; const updated = !locked && Boolean((recentStaffFieldChanges[user.id] || []).length); return `<tr class="${window.pendingStaffDeletion && window.pendingStaffDeletion.id === user.id ? 'user-pending-delete' : ''}"><td>#${toPersianDigits(user.id)}${updated ? '<span class="staff-update-dot staff-update-dot--between" title="تغییر جدید ثبت شده"></span>' : ''}</td><td style="font-weight:500;"><span class="staff-field-value ${(!locked && (recentStaffFieldChanges[user.id] || []).includes('name')) ? 'staff-field-changed' : ''}">${user.name}</span><span class="staff-role-badge ${staffRank[user.role] === 1 ? 'manager' : 'admin'}">${user.role}</span></td><td class="user-contact-cell"><span class="staff-field-value ${(!locked && (recentStaffFieldChanges[user.id] || []).includes('email')) ? 'staff-field-changed' : ''}">${user.email || '—'}</span></td><td class="user-contact-cell"><span class="staff-field-value ${(!locked && (recentStaffFieldChanges[user.id] || []).includes('phone')) ? 'staff-field-changed' : ''}">${toPersianDigits(user.phone || '—')}</span></td><td><span class="status ${user.status === 'فعال' ? 'success' : 'cancelled'}">${user.status}</span></td><td><button class="btn-secondary" style="padding:6px 14px;font-size:12px;cursor:pointer;border-radius:8px;${locked?'opacity:.45;pointer-events:none;':''}" onclick="editStaff(${user.id})">بررسی و ویرایش</button></td></tr>`;
   }).join("") || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary);">مدیر یا ادمینی برای نمایش وجود ندارد.</td></tr>';
 }
 
@@ -1677,8 +1683,8 @@ function initModals() {
   }
 
   const editStaffForm = document.getElementById("editStaffForm");
-  if (editStaffForm) editStaffForm.addEventListener("submit", function (e) { e.preventDefault(); const id = Number(document.getElementById("editStaffId").value), staff = appState.users.find(u => u.id === id), status = document.getElementById("editStaffStatus").value; if (!staff) return; triggerSafetyWarning(`آیا از تغییر وضعیت حساب «${staff.name}» اطمینان دارید؟`, function () { staff.status = status; localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); renderStaffTable(); closeModal("editStaffModal"); showToast("وضعیت حساب به‌روزرسانی شد.", "success"); }); });
-  document.getElementById("deleteStaffBtn")?.addEventListener("click", function () { const id = Number(document.getElementById("editStaffId").value), staff = appState.users.find(u => u.id === id); if (!staff) return; triggerSafetyWarning(`⚠️ آیا از حذف حساب «${staff.name}» مطمئن هستید؟`, function () { window.pendingStaffDeletion = { id }; closeModal("editStaffModal"); switchView("staff"); renderStaffTable(); showToast("حساب برای ۱۰ ثانیه با هشدار قرمز نمایش داده می‌شود.", "error"); setTimeout(function(){ appState.users = appState.users.filter(u=>u.id!==id); localStorage.setItem("irHesabdarUsers",JSON.stringify(appState.users)); window.pendingStaffDeletion=null; renderStaffTable(); showToast("حساب از فهرست حذف شد.","success");},10000); }); });
+  if (editStaffForm) editStaffForm.addEventListener("submit", function (e) { e.preventDefault(); const id = Number(document.getElementById("editStaffId").value), staff = appState.users.find(u => u.id === id), status = document.getElementById("editStaffStatus").value; if (!staff) return; triggerSafetyWarning(`آیا از تغییر وضعیت حساب «${staff.name}» اطمینان دارید؟`, function () { if (staff.status !== status) { const actor=appState.users.find(u=>u.id===currentStaffProfileId) || { name: "مدیر", id: "—" }; recordStaffChange(id, `مدیر «${actor.name}» با شناسه #${toPersianDigits(actor.id)} وضعیت حساب را تغییر داد.`, { label:"وضعیت حساب", before:staff.status, after:status }); } staff.status = status; localStorage.setItem("irHesabdarUsers", JSON.stringify(appState.users)); renderStaffTable(); closeModal("editStaffModal"); showToast("وضعیت حساب به‌روزرسانی شد.", "success"); }); });
+  document.getElementById("deleteStaffBtn")?.addEventListener("click", function () { const id = Number(document.getElementById("editStaffId").value), staff = appState.users.find(u => u.id === id); if (!staff) return; triggerSafetyWarning(`⚠️ آیا از حذف حساب «${staff.name}» مطمئن هستید؟`, function () { const actor = appState.users.find(u=>u.id===currentStaffProfileId) || {name:"مدیر",id:"—"}; pushAdminNotification("deletion", "حذف حساب ادمین", `ادمین «${staff.name}» توسط مدیر حذف شد.`, { "حساب حذف‌شده": staff.name, "نقش": staff.role, "حذف‌کننده": actor.name, "شناسه حذف‌کننده": "#"+toPersianDigits(actor.id), "تاریخ": new Date().toLocaleString("fa-IR") }); window.pendingStaffDeletion = { id }; closeModal("editStaffModal"); switchView("staff"); renderStaffTable(); showToast("حساب برای ۱۰ ثانیه با هشدار قرمز نمایش داده می‌شود.", "error"); setTimeout(function(){ appState.users = appState.users.filter(u=>u.id!==id); localStorage.setItem("irHesabdarUsers",JSON.stringify(appState.users)); window.pendingStaffDeletion=null; renderStaffTable(); showToast("حساب از فهرست حذف شد.","success");},10000); }); });
 
   // Bind radio button listeners for product access type
   const accessTypePremium = document.getElementById("accessTypePremium");
