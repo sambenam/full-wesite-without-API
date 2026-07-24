@@ -104,6 +104,19 @@ function loadSystemSettings() {
 let currentAdminUserRole = "manager";
 
 
+let profileReviewState = { timer: null, confirm: null, cancel: null };
+function openProfileChangePreview(changes, onConfirm, onCancel) {
+  const modal = document.getElementById("profileChangeReviewModal"), list = document.getElementById("profileReviewChanges"), timer = document.getElementById("profileReviewTimer");
+  if (!modal || !list) return;
+  list.innerHTML = changes.length ? changes.map(change => `<article class="profile-review-row"><strong>${change.label}</strong><div class="profile-review-before"><small>قبل از تغییر</small><span>${change.before || "—"}</span></div><div class="profile-review-after"><small>پس از تغییر</small><span>${change.after || "—"}</span></div></article>`).join("") : '<p class="profile-review-empty">تغییری در اطلاعات پروفایل ثبت نشده است.</p>';
+  profileReviewState.confirm = onConfirm; profileReviewState.cancel = onCancel; let remaining = 15; timer.textContent = toPersianDigits(remaining);
+  openModal("profileChangeReviewModal");
+  const finish = function (approved) { clearInterval(profileReviewState.timer); closeModal("profileChangeReviewModal"); const action = approved ? profileReviewState.confirm : profileReviewState.cancel; profileReviewState.confirm = profileReviewState.cancel = null; if (typeof action === "function") action(); };
+  document.getElementById("profileReviewConfirm").onclick = () => finish(true);
+  document.getElementById("profileReviewCancel").onclick = () => finish(false);
+  profileReviewState.timer = setInterval(() => { remaining--; timer.textContent = toPersianDigits(remaining); if (remaining <= 0) finish(true); }, 1000);
+}
+
 let safetyWarningState = {
   timer: null,
   countdown: 10,
@@ -496,7 +509,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      triggerSafetyWarning(`آیا از به‌روزرسانی مشخصات حساب کاربری خود اطمینان دارید؟`, () => {
+      const currentProfile = appState.users.find(u => u.id === currentStaffProfileId) || {};
+      const existingSettings = loadSystemSettings();
+      const profileChanges = [];
+      if (name !== (currentProfile.name || existingSettings.adminName || "")) profileChanges.push({ label: "نام کاربری", before: currentProfile.name || existingSettings.adminName || "—", after: name });
+      if (profileEmail !== (currentProfile.email || "")) profileChanges.push({ label: "ایمیل", before: currentProfile.email || "—", after: profileEmail });
+      if (profilePhone !== (currentProfile.phone || "")) profileChanges.push({ label: "تلفن همراه", before: currentProfile.phone || "—", after: profilePhone });
+      if (avatar !== (existingSettings.adminAvatar || "")) profileChanges.push({ label: "تصویر پروفایل", before: "تصویر فعلی", after: "تصویر جدید انتخاب شد" });
+      if (isChangingPassword && newPassword) profileChanges.push({ label: "رمز عبور", before: "رمز فعلی", after: "رمز جدید" });
+      openProfileChangePreview(profileChanges, () => {
         const currentSettings = loadSystemSettings();
         currentSettings.adminName = name;
         currentSettings.adminAvatar = avatar;
@@ -536,6 +557,15 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           showToast("پروفایل کاربری با موفقیت به‌روزرسانی شد.", "success");
         }
+      }, () => {
+        const latestSettings = loadSystemSettings();
+        document.getElementById("setAdminName").value = currentProfile.name || latestSettings.adminName || "";
+        document.getElementById("profileEmail").value = currentProfile.email || "";
+        document.getElementById("profilePhone").value = currentProfile.phone || "";
+        document.getElementById("setAdminAvatar").value = latestSettings.adminAvatar || "";
+        document.getElementById("profileAvatarPreview").src = latestSettings.adminAvatar || "https://i.pravatar.cc/150?img=33";
+        document.getElementById("setAdminPassword").value = ""; document.getElementById("setAdminPasswordConfirm").value = "";
+        showToast("تغییرات اعمال نشد و اطلاعات قبلی بازگردانده شد.", "info");
       });
     });
   }
