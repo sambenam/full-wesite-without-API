@@ -358,14 +358,24 @@ let appState = {
 
 const notificationThemes = { purchase: "green", user: "blue", staff: "yellow", report: "red" };
 let bellTimer = null;
-function pushAdminNotification(type, title, desc) {
+function pushAdminNotification(type, title, desc, details = {}) {
   const theme = notificationThemes[type] || "blue";
-  const notification = { id: Date.now(), type, theme, title, desc, time: "همین حالا", unread: true, fresh: true };
+  const notification = { id: Date.now(), type, theme, title, desc, time: "همین حالا", unread: true, fresh: true, details };
   appState.notifications.unshift(notification);
   activateNotificationBell(theme);
   renderNotificationDropdownItems(); renderNotificationsPage();
   return notification;
 }
+function openNotificationDetails(id) {
+  const n = appState.notifications.find(item => String(item.id) === String(id)); if (!n) return;
+  const labels = { purchase: "سفارش و پرداخت", user: "ثبت‌نام کاربر", staff: "تغییرات پروفایل", report: "گزارش تخلف" };
+  document.getElementById("notificationDetailType").textContent = labels[n.type] || "جزئیات رویداد";
+  document.getElementById("notificationDetailTitle").textContent = n.title;
+  const details = n.details || {}, fields = Object.keys(details);
+  document.getElementById("notificationDetailBody").innerHTML = `<p class="notification-detail-desc">${n.desc}</p>` + (fields.length ? `<div class="notification-detail-grid">${fields.map(key => `<div><small>${key}</small><strong>${details[key]}</strong></div>`).join("")}</div>` : '<p class="notification-detail-empty">جزئیات تکمیلی این رویداد از سرور دریافت نشده است.</p>');
+  openModal("notificationDetailModal");
+}
+window.openNotificationDetails = openNotificationDetails;
 function activateNotificationBell(theme) {
   const bell = document.getElementById("notificationBtn"); if (!bell) return;
   clearTimeout(bellTimer); bell.classList.remove("bell-green","bell-blue","bell-yellow","bell-red"); bell.classList.add("bell-" + theme);
@@ -373,12 +383,12 @@ function activateNotificationBell(theme) {
 }
 function renderNotificationsPage() {
   const container = document.getElementById("notificationsPageList"); if (!container) return;
-  container.innerHTML = appState.notifications.map(n => `<div class="notification-item notification-${n.theme || 'blue'}"><i class="fas ${n.type === 'purchase' ? 'fa-circle-check' : n.type === 'user' ? 'fa-user-plus' : n.type === 'staff' ? 'fa-user-gear' : 'fa-flag'}"></i><div><strong>${n.title}</strong><p>${n.desc}</p><small>${n.time}</small></div></div>`).join("") || '<p style="text-align:center;padding:2rem">اعلانی وجود ندارد.</p>';
+  container.innerHTML = appState.notifications.map(n => `<div class="notification-item notification-${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><i class="fas ${n.type === 'purchase' ? 'fa-circle-check' : n.type === 'user' ? 'fa-user-plus' : n.type === 'staff' ? 'fa-user-gear' : 'fa-flag'}"></i><div><strong>${n.title}</strong><p>${n.desc}</p><small>${n.time}</small></div></div>`).join("") || '<p style="text-align:center;padding:2rem">اعلانی وجود ندارد.</p>';
 }
 window.pushAdminNotification = pushAdminNotification;
 // Receives real order/user events written by other pages of the same site (checkout/sign-up).
 window.addEventListener("storage", function (event) {
-  if (event.key === "irHesabdarOrders" && event.newValue) { try { const incoming = JSON.parse(event.newValue); const known = new Set(appState.orders.map(o => String(o.id))); incoming.filter(o => !known.has(String(o.id))).forEach(o => pushAdminNotification("purchase", o.status === "success" ? "پرداخت موفق" : "سفارش جدید", `سفارش ${o.id || "جدید"} ثبت شد.`)); appState.orders = incoming; } catch(e) {} }
+  if (event.key === "irHesabdarOrders" && event.newValue) { try { const incoming = JSON.parse(event.newValue); const known = new Set(appState.orders.map(o => String(o.id))); incoming.filter(o => !known.has(String(o.id))).forEach(o => pushAdminNotification("purchase", o.status === "success" ? "پرداخت موفق" : "سفارش جدید", `سفارش ${o.id || "جدید"} ثبت شد.`, { "شماره سفارش": o.id || "—", "خریدار": o.customer || "—", "محصول": o.product || "—", "مبلغ": o.amount || "—", "تاریخ": o.date || "—", "وضعیت": getStatusText(o.status) })); appState.orders = incoming; } catch(e) {} }
   if (event.key === "irHesabdarUsers" && event.newValue) { try { const incoming = JSON.parse(event.newValue); const known = new Set(appState.users.map(u => String(u.id))); incoming.filter(u => !known.has(String(u.id)) && u.role === "کاربر عادی").forEach(u => pushAdminNotification("user", "کاربر جدید", `کاربر «${u.name || "جدید"}» ثبت‌نام کرد.`)); appState.users = incoming; } catch(e) {} }
 });
 
@@ -427,10 +437,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Temporary four-event notification stack for visual testing (newest item is the order).
   setTimeout(function () {
     appState.notifications = [];
-    pushAdminNotification("staff", "ویرایش پروفایل ادمین", "ادمین «محمد رضایی» اطلاعات پروفایل خود را به‌روزرسانی کرد.");
-    pushAdminNotification("user", "ثبت‌نام کاربر جدید", "کاربر «سارا محمدی» به سامانه پیوست.");
-    pushAdminNotification("report", "گزارش تخلف جدید", "کاربر «علی احمدی» یک گزارش تخلف ثبت کرده است.");
-    pushAdminNotification("purchase", "سفارش جدید ثبت شد", "سفارش شماره #۷۴۸۳۳ با موفقیت ثبت شد.");
+    pushAdminNotification("staff", "ویرایش پروفایل ادمین", "ادمین «محمد رضایی» اطلاعات پروفایل خود را به‌روزرسانی کرد.", { "کاربر": "محمد رضایی", "موارد تغییرکرده": "نام کاربری و تلفن همراه", "تاریخ": "۱۴۰۵/۰۵/۰۳ - ۱۰:۴۵" });
+    pushAdminNotification("user", "ثبت‌نام کاربر جدید", "کاربر «سارا محمدی» به سامانه پیوست.", { "نام کاربر": "سارا محمدی", "ایمیل": "sara@example.com", "تلفن": "۰۹۱۲۹۸۷۶۵۴۳", "تاریخ ثبت‌نام": "۱۴۰۵/۰۵/۰۳ - ۱۰:۳۰" });
+    pushAdminNotification("report", "گزارش تخلف جدید", "کاربر «علی احمدی» یک گزارش تخلف ثبت کرده است.", { "گزارش‌دهنده": "علی احمدی", "نوع گزارش": "تخلف در محتوا", "شرح": "گزارش آزمایشی برای بررسی سیستم اعلان", "تاریخ": "۱۴۰۵/۰۵/۰۳ - ۱۰:۳۵" });
+    pushAdminNotification("purchase", "سفارش جدید ثبت شد", "سفارش شماره #۷۴۸۳۳ با موفقیت ثبت شد.", { "شماره سفارش": "#۷۴۸۳۳", "خریدار": "علی احمدی", "محصول": "دوره حسابداری مقدماتی", "مبلغ": "۹۵,۰۰۰ تومان", "وضعیت پرداخت": "موفق", "تاریخ ثبت": "۱۴۰۵/۰۵/۰۳ - ۱۰:۴۰" });
   }, 700);
   initModals();
   initSearch();
@@ -1943,7 +1953,7 @@ function initNotifications() {
 function renderNotificationDropdownItems() {
   const container = document.getElementById("notifListContainer");
   if (!container) return;
-  container.innerHTML = appState.notifications.slice(0, 10).map((n) => `<div class="notif-item notif-item--${n.theme || 'blue'}"><span class="notif-event-dot"></span><div><div style="font-size:13px;color:var(--text-primary);font-weight:600;">${n.title}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${n.desc} · ${n.time}</div></div></div>`).join("");
+  container.innerHTML = appState.notifications.slice(0, 10).map((n) => `<div class="notif-item notif-item--${n.theme || 'blue'}" onclick="openNotificationDetails('${n.id}')" style="cursor:pointer"><span class="notif-event-dot"></span><div><div style="font-size:13px;color:var(--text-primary);font-weight:600;">${n.title}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${n.desc} · ${n.time}</div></div></div>`).join("");
 }
 
 function showToast(message, type = "success") {
