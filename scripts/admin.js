@@ -403,6 +403,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("profileEmail")) document.getElementById("profileEmail").value = activeStaff.email || "manager@example.com";
   if (document.getElementById("profilePhone")) document.getElementById("profilePhone").value = activeStaff.phone || "09120000000";
   if (document.getElementById("profileAvatarPreview")) document.getElementById("profileAvatarPreview").src = sysSettings.adminAvatar || "https://i.pravatar.cc/150?img=33";
+  const roleBadge = document.getElementById("profileRoleBadge");
+  if (roleBadge) { const role = activeStaff.role || "مدیر سایت"; roleBadge.textContent = role === "ادمین" ? "ادمین" : "مدیر"; roleBadge.className = "profile-role-badge " + (role === "ادمین" ? "profile-role-badge--admin" : "profile-role-badge--manager"); }
 
   const sideName = document.getElementById("sidebarUserName");
   const sideAvatar = document.getElementById("sidebarAvatar");
