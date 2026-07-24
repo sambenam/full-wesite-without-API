@@ -405,7 +405,16 @@ function openNotificationDetails(id) {
   const details = n.details || {}, fields = schema.fields.filter(key => details[key] !== undefined && details[key] !== null && details[key] !== "");
   const extraFields = Object.keys(details).filter(key => !schema.fields.includes(key));
   const renderField = key => `<div><small>${key}</small><strong>${details[key]}</strong></div>`;
-  document.getElementById("notificationDetailBody").innerHTML = `<p class="notification-detail-desc">${n.desc}</p>` + (fields.length ? `<div class="notification-detail-grid">${fields.map(renderField).join("")}</div>` : '<p class="notification-detail-empty">جزئیات تکمیلی این رویداد از سرور دریافت نشده است.</p>') + (extraFields.length ? `<div class="notification-extra-fields">${extraFields.map(renderField).join("")}</div>` : "");
+  const body = document.getElementById("notificationDetailBody");
+  body.className = "notification-detail-body notification-detail-body--" + n.type;
+  const grid = fields.length ? `<div class="notification-detail-grid">${fields.map(renderField).join("")}</div>` : '<p class="notification-detail-empty">جزئیات تکمیلی این رویداد از سرور دریافت نشده است.</p>';
+  const extras = extraFields.length ? `<div class="notification-extra-fields">${extraFields.map(renderField).join("")}</div>` : "";
+  if (n.type === "purchase") body.innerHTML = `<div class="notification-detail-hero purchase"><i class="fas fa-receipt"></i><div><small>سفارش و پرداخت</small><strong>${details["شماره سفارش"] || "سفارش جدید"}</strong></div><b>${details["مبلغ"] || "—"}</b></div>${grid}`;
+  else if (n.type === "user") body.innerHTML = `<div class="notification-detail-hero user"><i class="fas fa-user-plus"></i><div><small>عضو جدید سامانه</small><strong>${details["نام کاربر"] || "کاربر جدید"}</strong></div></div>${grid}`;
+  else if (n.type === "staff") body.innerHTML = `<div class="notification-detail-hero staff"><i class="fas fa-user-gear"></i><div><small>${details["نقش"] || "عضو مدیریت"}</small><strong>${details["کاربر"] || "—"}</strong></div></div><div class="notification-change-summary"><small>تغییرات ثبت‌شده</small><strong>${details["موارد تغییرکرده"] || "—"}</strong></div>${grid}`;
+  else if (n.type === "report") body.innerHTML = `<div class="notification-detail-hero report"><i class="fas fa-flag"></i><div><small>گزارش با اهمیت ${details["درجه اهمیت"] || "—"}</small><strong>${details["شناسه گزارش"] || "گزارش جدید"}</strong></div></div><div class="notification-report-text"><small>شرح گزارش</small><p>${details["شرح"] || n.desc}</p></div>${grid}`;
+  else if (n.type === "deletion") body.innerHTML = `<div class="notification-detail-hero deletion"><i class="fas fa-user-slash"></i><div><small>عملیات حذف حساب</small><strong>${details["حساب حذف‌شده"] || "—"}</strong></div></div><div class="notification-deletion-warning"><i class="fas fa-triangle-exclamation"></i> این عملیات توسط ${details["حذف‌کننده"] || "مدیر"} انجام شده است.</div>${grid}`;
+  else body.innerHTML = `<p class="notification-detail-desc">${n.desc}</p>${grid}${extras}`;
   openModal("notificationDetailModal");
 }
 window.openNotificationDetails = openNotificationDetails;
@@ -1591,11 +1600,13 @@ function openModal(modalId) {
     }
   }
   document.getElementById(modalId).classList.add("active");
+  document.body.classList.add("modal-open");
   document.getElementById("overlay").classList.add("active");
 }
 
 function closeModal(modalId) {
   document.getElementById(modalId).classList.remove("active");
+  if (!document.querySelector(".modal-overlay.active")) document.body.classList.remove("modal-open");
   document.getElementById("overlay").classList.remove("active");
 }
 
